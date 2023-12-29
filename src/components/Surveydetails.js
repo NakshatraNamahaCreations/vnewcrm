@@ -10,7 +10,7 @@ function Createquote() {
   const admin = JSON.parse(sessionStorage.getItem("admin"));
   const navigate = useNavigate();
   const location = useLocation();
-  const { data } = location.state;
+  const { data, sydate } = location.state;
 
   const [techniciandata, settechniciandata] = useState([]);
   const [vendordata, setvendordata] = useState([]);
@@ -33,10 +33,17 @@ function Createquote() {
     defaultChecked = data.Type || "";
   }
   const [type, settype] = useState(defaultChecked);
+
   const handleChange2 = (event) => {
     settype(event.target.value);
   };
   const [serviceId, setServiceId] = useState("");
+
+  const [wtype, setwtype] = useState("YES");
+
+  const handleChange3 = (event) => {
+    setwtype(event.target.value);
+  };
 
   useEffect(() => {
     gettechnician();
@@ -111,10 +118,15 @@ function Createquote() {
     getwhatsapptemplate();
   }, []);
 
+  const [srechdule, setsreschdule] = useState([]);
   const getwhatsapptemplate = async () => {
     let res = await axios.get(apiURL + "/getwhatsapptemplate");
     if (res.status === 200) {
-      setwhatsappdata(res.data?.whatsapptemplate);
+      const data = res?.data?.whatsapptemplate;
+      setsreschdule(
+        data?.filter((item) => item.templatename === "Survey reschedule")
+      );
+      setwhatsappdata(data);
     }
   };
 
@@ -132,7 +144,7 @@ function Createquote() {
   };
 
   let getTemplateDatails = whatsappdata.find(
-    (item) => item.templatename === "Survey Add"
+    (item) => item.templatename === "Survey assign"
   );
 
   const Save = async (e) => {
@@ -144,7 +156,7 @@ function Createquote() {
         baseURL: apiURL,
         headers: { "content-type": "application/json" },
         data: {
-          technicianname: technician.vhsname,
+          technicianname: technician?.vhsname,
           techId: technician?._id,
           appoDate: appoDate,
           appoTime: appoTime,
@@ -154,10 +166,19 @@ function Createquote() {
       };
       await axios(config).then(function (response) {
         if (response.status === 200) {
-          makeApiCall(getTemplateDatails, data.enquirydata[0].mobile);
-          alert("Successfully Added");
-          window.location.reload();
-          // navigate(`/quotedetails/${data.EnquiryId}`);
+          if (wtype === "YES") {
+            if (appoDate !== data?.nxtfoll) {
+              makeApiCall(getTemplateDatails, data?.enquirydata[0]?.mobile);
+            } else {
+              reschdulewhat(srechdule[0], data?.enquirydata[0]?.mobile);
+            }
+          } else {
+            window.location.assign(
+              `/surveydatatable/${sydate}/${data?.category}`
+            );
+          }
+
+
         }
       });
     } catch (error) {
@@ -166,57 +187,28 @@ function Createquote() {
     }
   };
 
-  function stripHtml(html) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const plainText = doc.body.textContent || "";
-    return plainText.replace(/\r?\n/g, " "); // Remove all HTML tags but keep line breaks
-  }
-  const makeApiCall = async (selectedResponse, contactNumber) => {
+  const makeApiCall = async (getTemplateDatails, contactNumber, invoiceId) => {
     const apiURL =
       "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
     const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
 
-    const contentTemplate = selectedResponse?.template || "";
+    const contentTemplate = getTemplateDatails?.template || "";
 
     if (!contentTemplate) {
       console.error("Content template is empty. Cannot proceed.");
       return;
     }
-
-    const content = contentTemplate.replace(
-      /\{Customer_name\}/g,
-      data.enquirydata[0].name
-    );
-    const contentWithNames = content.replace(
-      /\{Staff_name\}/g,
-      data?.staffname
-    );
-    const contentWithMobile = contentWithNames.replace(
-      /\{Staff_contact\}/g,
-      admin.contactno //check conatct no for Staff_contact
-    );
-    const technicianName = contentWithMobile.replace(
-      /\{Technician_name\}/g,
-      technician?.vhsname
-    );
-    const technicianExperiance = technicianName.replace(
-      /\{Technician_experiance\}/g,
-      technician?.experiance
-    );
-    const technicianLanguageKnown = technicianExperiance.replace(
-      /\{Technician_languages_known\}/g,
-      technician?.languagesknow
-    );
-    const jobType = technicianLanguageKnown.replace(
-      /\{Job_type\}/g,
-      data?.category
-    );
-    const callDate = jobType.replace(/\{Call_date\}/g, data?.nxtfoll);
-    const callTime = callDate.replace(/\{Call_time\}/g, data?.appoTime);
-    const plainTextContent = stripHtml(callTime);
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, data.enquirydata[0].name)
+      .replace(/\{Service_name\}/g, data.enquirydata[0].intrestedfor)
+      .replace(/\{Appointment_datetime\}/g, appoDate)
+      .replace(/\{Executive_name\}/g, admin.displayname)
+      .replace(/\{Executive_contact\}/g, admin.contactno)
+      .replace(/\{Technician_experiance\}/g, technician?.experiance)
+      .replace(/\{Technician_languages_known\}/g, technician?.languagesknow);
 
     // Replace <p> with line breaks and remove HTML tags
-    const convertedText = callTime
+    const convertedText = invoiceLink
       .replace(/<p>/g, "\n")
       .replace(/<\/p>/g, "")
       .replace(/<br>/g, "\n")
@@ -243,7 +235,64 @@ function Createquote() {
 
       if (response.status === 200) {
         setWhatsappTemplate(response.data);
-        alert("Sent");
+        window.location.assign(`/surveydatatable/${sydate}/${data?.category}`);
+      } else {
+        console.error("API call unsuccessful. Status code:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making API call:", error);
+    }
+  };
+  const reschdulewhat = async (
+    getTemplateDatails,
+    contactNumber,
+    invoiceId
+  ) => {
+    const apiURL =
+      "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
+    const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
+
+    const contentTemplate = getTemplateDatails?.template || "";
+
+    if (!contentTemplate) {
+      console.error("Content template is empty. Cannot proceed.");
+      return;
+    }
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, data.enquirydata[0].name)
+      .replace(/\{Service_name\}/g, data.enquirydata[0].intrestedfor)
+      .replace(/\{survey_date\}/g, data?.nxtfoll)
+      .replace(/\{reschedule_ survey_date\}/g, appoDate);
+
+    // Replace <p> with line breaks and remove HTML tags
+    const convertedText = invoiceLink
+      .replace(/<p>/g, "\n")
+      .replace(/<\/p>/g, "")
+      .replace(/<br>/g, "\n")
+      .replace(/&nbsp;/g, "")
+      .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
+      .replace(/<[^>]*>/g, "");
+
+    const requestData = [
+      {
+        dst: "91" + contactNumber,
+        messageType: "0",
+        textMessage: {
+          content: convertedText,
+        },
+      },
+    ];
+    try {
+      const response = await axios.post(apiURL, requestData, {
+        headers: {
+          "access-token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        setWhatsappTemplate(response.data);
+        window.location.assign(`/surveydatatable/${sydate}/${data?.category}`);
       } else {
         console.error("API call unsuccessful. Status code:", response.status);
       }
@@ -355,9 +404,15 @@ function Createquote() {
 
                   <div className="col-md-4">
                     <div className="">
-                      <b>Comment : </b>
-                      {data.enquirydata[0]?.comment}
+                      <b>desc : </b>
+                      {data?.desc}
                     </div>
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="">
+                    <b>Executive : </b>
+                    {data.staffname}
                   </div>
                 </div>
               </form>
@@ -512,6 +567,32 @@ function Createquote() {
                         </div>
                       )}
                     </div>
+                  </div>
+                  <div className="row">
+                    <div className="group pt-1 mt-3">
+                      <h6 className="mt-3">Send whatsapp Template</h6>
+                      <label>
+                        <input
+                          type="radio"
+                          value="YES"
+                          className="custom-radio mx-2"
+                          checked={wtype === "YES"}
+                          onChange={handleChange3}
+                        />
+                        YES
+                      </label>
+
+                      <label className="mx-3">
+                        <input
+                          type="radio"
+                          value="NO"
+                          className="custom-radio mx-2"
+                          checked={wtype === "NO"}
+                          onChange={handleChange3}
+                        />
+                        NO
+                      </label>
+                    </div>{" "}
                   </div>
                 </div>
                 <div className="row pt-3 mt-5 ">

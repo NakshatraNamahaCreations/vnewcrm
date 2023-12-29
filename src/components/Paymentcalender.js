@@ -90,7 +90,7 @@ function Paymentcalender() {
 
   const getAlldsr = async () => {
     try {
-      let res = await axios.post(apiURL + "/getPaymentcalenderlist", {
+      let res = await axios.post(apiURL+"/getPaymentcalenderlist", {
         startDate: rstart, 
         endDate: rend, 
       });

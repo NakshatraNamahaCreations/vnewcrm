@@ -28,7 +28,7 @@ function Ecalllater() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [itemsPerPage] = useState(100);
 
   useEffect(() => {
     getenquiry();
@@ -103,6 +103,15 @@ function Ecalllater() {
       if (searchReference2) {
         results = results.filter(
           (item) =>
+            item.reference2 &&
+            item.reference2
+              .toLowerCase()
+              .includes(searchReference2.toLowerCase())
+        );
+      }
+      if (searchReference2) {
+        results = results.filter(
+          (item) =>
             item.enquirydata[0]?.reference2 &&
             item.enquirydata[0]?.reference2
               .toLowerCase()
@@ -155,13 +164,7 @@ function Ecalllater() {
             item.desc.toLowerCase().includes(searchDesc.toLowerCase())
         );
       }
-      if (searchNxtfoll) {
-        results = results.filter(
-          (item) =>
-            item.nxtfoll &&
-            item.nxtfoll.toLowerCase().includes(searchNxtfoll.toLowerCase())
-        );
-      }
+
       // results = results.map((item) => ({
       //   ...item,
       //   category: getUniqueCategories()[item.category],
@@ -309,7 +312,14 @@ function Ecalllater() {
                     ))}
                   </select>{" "}
                 </th>
-
+                <th scope="col">
+                  <input
+                    placeholder="Nxt foll"
+                    className="vhs-table-input"
+                    value={searchReference}
+                    onChange={(e) => setSearchReference(e.target.value)}
+                  />{" "}
+                </th>
                 <th scope="col">
                   <input
                     placeholder="Reference"
@@ -362,14 +372,6 @@ function Ecalllater() {
                     onChange={(e) => setSearchDesc(e.target.value)}
                   />{" "}
                 </th>
-                <th scope="col">
-                  <input
-                    placeholder="Nxt foll"
-                    className="vhs-table-input"
-                    value={searchNxtfoll}
-                    onChange={(e) => setSearchNxtfoll(e.target.value)}
-                  />{" "}
-                </th>
               </tr>
               <tr className="bg">
                 <th className="bor">#</th>
@@ -380,6 +382,7 @@ function Ecalllater() {
                 <th className="bor">Contact</th>
                 <th className="bor">Address</th>
                 <th className="bor">City</th>
+                <th className="bor">Reference1</th>
                 <th className="bor">Reference2</th>
 
                 <th className="bor">Interested for</th>
@@ -387,11 +390,11 @@ function Ecalllater() {
                 <th className="bor">Staff</th>
                 <th className="bor">Response</th>
                 <th className="bor">Desc</th>
-                <th className="bor">Nxt Foll</th>
+                {/* <th className="bor">Nxt Foll</th> */}
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((item, index) => (
+              {currentItems.map((item) => (
                 <a onClick={() => enquirydetail(item)} className="tbl">
                   <tr
                     key={item.id}
@@ -401,22 +404,22 @@ function Ecalllater() {
                       color: "black",
                     }}
                   >
-                    <td>{index + 1}</td>
+                    <td>{i++}</td>
                     <td>{item.category}</td>
-                    <td>{item.enquirydata[0]?.enquirydate}</td>
+                    <td>{item.enquirydata[0]?.date} <br />{item.enquirydata[0]?.Time}</td>
 
                     <td>{item.enquirydata[0]?.name}</td>
                     <td>{item.enquirydata[0]?.mobile}</td>
                     <td>{item.enquirydata[0]?.address}</td>
                     <td>{item.enquirydata[0]?.city}</td>
-
+                    <td>{item.enquirydata[0]?.reference1}</td>
                     <td>{item.enquirydata[0]?.reference2}</td>
                     <td>{item.enquirydata[0]?.intrestedfor}</td>
                     <td>{item.folldate}</td>
                     <td>{item.staffname}</td>
                     <td>{item.response}</td>
                     <td>{item.desc}</td>
-                    <td>{item.nxtfoll}</td>
+                    {/* <td>{item.nxtfoll}</td> */}
                   </tr>
                 </a>
               ))}

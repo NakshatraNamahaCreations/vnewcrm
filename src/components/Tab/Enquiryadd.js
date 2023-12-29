@@ -209,6 +209,7 @@ function Enquiryadd() {
       });
 
       if (response.status === 200) {
+        
         setWhatsappTemplate(response.data);
       } else {
         console.error("API call unsuccessful. Status code:", response.status);
@@ -438,7 +439,7 @@ function Enquiryadd() {
                             selectedService ? selectedService.serviceName : ""
                           );
                         }}
-                        // onChange={(e) => setSeviceName(e.target.value)}
+                        
                       >
                         <option>---SELECT---</option>
                         {serviceData.map((item) => (

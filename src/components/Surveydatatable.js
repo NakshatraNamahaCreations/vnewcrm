@@ -61,7 +61,7 @@ function Surveydatatable() {
     getenquiry();
   }, []);
 
-  console.log("categor", category, date);
+
   const getenquiry = async () => {
     try {
       const res = await axios.post(apiURL + "/getsurveyaggredata", {
@@ -92,7 +92,32 @@ function Surveydatatable() {
     setShowPopup(data);
     setShow(true);
   };
+
   const handleClose = () => setShow(false);
+
+  var adminData = sessionStorage.getItem("admin");
+
+  // Parse the JSON string back into an object
+  var adminObject = JSON.parse(adminData);
+
+
+  const [srcancelwht, setscancel] = useState([]);
+
+  useEffect(() => {
+    getwhatsapptemplate();
+  }, []);
+
+
+  const getwhatsapptemplate = async () => {
+    let res = await axios.get(apiURL + "/getwhatsapptemplate");
+    if (res.status === 200) {
+      const data = res?.data?.whatsapptemplate;
+      setscancel(
+        data?.filter((item) => item.templatename === "Survey cancel")
+      );
+     
+    }
+  };
 
   const cancelSurvey = async (e) => {
     e.preventDefault();
@@ -101,7 +126,6 @@ function Surveydatatable() {
     );
     if (confirm) {
       try {
-        // Cancel the survey
         const config = {
           url: `/canclesurvey/${showPopup._id}`,
           method: "post",
@@ -111,12 +135,14 @@ function Surveydatatable() {
             userid: showPopup._id,
             reasonForCancel: reasonforcancel,
             cancelStatus: true,
+            adminname: adminObject?.displayname,
+            admindate: moment().format("DD MM YYYY"),
           },
         };
         const response = await axios(config);
         if (response.status === 200) {
-          alert("Successfully updates");
-          window.location.reload("");
+         
+          makeApiCall(srcancelwht[0], showPopup?.enquirydata[0]?.mobile);
         }
       } catch (error) {
         console.error(error);
@@ -275,6 +301,64 @@ function Surveydatatable() {
   // Change page
   const handlePageChange = (selectedPage) => {
     setCurrentPage(selectedPage);
+  };
+
+
+  const makeApiCall = async (getTemplateDatails, contactNumber, invoiceId) => {
+    const apiURL =
+      "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
+    const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
+
+    const contentTemplate = getTemplateDatails?.template || "";
+
+    if (!contentTemplate) {
+      console.error("Content template is empty. Cannot proceed.");
+      return;
+    }
+
+    const googleform="https://docs.google.com/forms/d/e/1FAIpQLSd5Dk_Ie_NZjni1alGU5I8nkEpJ_Qb4_eQsSnfBSRYve6eS5g/viewform"
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, showPopup?.enquirydata[0].name)
+      .replace(/\{survey_date\}/g, showPopup?.nxtfoll)
+      .replace(/\{google Form\}/g, googleform)
+ 
+  
+
+    // Replace <p> with line breaks and remove HTML tags
+    const convertedText = invoiceLink
+      .replace(/<p>/g, "\n")
+      .replace(/<\/p>/g, "")
+      .replace(/<br>/g, "\n")
+      .replace(/&nbsp;/g, "")
+      .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
+      .replace(/<[^>]*>/g, "");
+
+    const requestData = [
+      {
+        dst: "91" + contactNumber,
+        messageType: "0",
+        textMessage: {
+          content: convertedText,
+        },
+      },
+    ];
+    try {
+      const response = await axios.post(apiURL, requestData, {
+        headers: {
+          "access-token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+       
+        window.location.reload(`surveydatatable/${date}/${category}`);
+      } else {
+        console.error("API call unsuccessful. Status code:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making API call:", error);
+    }
   };
 
   return (
@@ -437,6 +521,7 @@ function Surveydatatable() {
                   />{" "}
                 </th>
                 <th className="bor"></th>
+                <th className="bor"></th>
                 <th className="bor">
                   {" "}
                   <select
@@ -466,10 +551,11 @@ function Surveydatatable() {
                 <th className="bor">Executive</th>
 
                 <th className="bor" style={{ width: "200px" }}>
-                  Appo. Date Time
+                  {/* Appo. Date  */}
+                  Time
                 </th>
                 {/* <th className="bor">Note</th> */}
-                {/* <th className="bor">Technician</th> */}
+                <th className="bor">Description</th>
                 <th className="bor">Comment</th>
                 <th className="bor">Type</th>
                 <th className="bor">Reason for cancel</th>
@@ -516,10 +602,11 @@ function Surveydatatable() {
                     <td>{item.enquirydata[0]?.intrestedfor}</td>
                     <td>{item.technicianname}</td>
                     <td>
-                      {item.appoDate ? item.appoDate : item.nxtfoll}
-                      <br />
+                      {/* {item.appoDate ? item.appoDate : item.nxtfoll}
+                      <br /> */}
                       {item.appoTime}
                     </td>
+                    <td>{item.desc}</td>
                     {/* <td>{item.enquirydata[0]?.comment}</td> */}
                     {/* <td>{item.technicianname}</td> */}
                     <td>{item.enquirydata[0]?.intrestedfor}</td>
@@ -531,7 +618,11 @@ function Surveydatatable() {
                         ? "ASSIGNED FOR SURVEY"
                         : "NOT ASSIGNED"}
                     </td>
-                    <td>{item.reasonForCancel}</td>
+                    <td>
+                      {item.reasonForCancel} <br />
+                      {item.adminname} <br />
+                      {item.admindate}
+                    </td>
                   </Link>
 
                   <td>

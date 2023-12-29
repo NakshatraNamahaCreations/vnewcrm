@@ -519,7 +519,7 @@ function Quotationterm() {
   const [materialdata, setmaterialdata] = useState([]);
   const location = useLocation();
   const { data } = location.state || null;
-  console.log("data", data);
+
   const apiURL = process.env.REACT_APP_API_URL;
   const imgURL = process.env.REACT_APP_IMAGE_API_URL;
 
@@ -535,7 +535,7 @@ function Quotationterm() {
     let res = await axios.get(apiURL + "/master/gettermgroup");
     if ((res.status = 200)) {
       settcdata(res.data?.termsgroup);
-      console.log("tcdata", res.data?.termsgroup);
+
     }
   };
   const gettermsgroup2 = async () => {
@@ -786,7 +786,7 @@ function Quotationterm() {
                     </div>
                     <div className="col-1" style={{ textAlign: "right" }}>
                       {data[0]?.quotedata[0]?.GST == true ? (
-                        <h5>{total * 0.05}</h5>
+                        <h5>{(total * 0.05).toFixed(2)}</h5>
                       ) : (
                         <>0</>
                       )}

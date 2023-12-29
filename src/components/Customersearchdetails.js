@@ -561,7 +561,7 @@ function Customersearchdetails() {
       customerdata?.customerName
     );
     const serviceName = content.replace(/\{Service_name\}/g, treatment);
-    const slotTiming = serviceName.replace(/\{Slot_timing\}/g, selectedSlot);
+    const slotTiming = serviceName.replace(/\{Slot_timing\}/g, "");
     const serivePrice = slotTiming.replace(
       /\{Service_amount\}/g,
       serviceCharge
@@ -600,7 +600,7 @@ function Customersearchdetails() {
 
       if (response.status === 200) {
         setWhatsappTemplate(response.data);
-        alert("Sent");
+        
         window.location.reload("");
       } else {
         console.error("API call unsuccessful. Status code:", response.status);

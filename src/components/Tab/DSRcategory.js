@@ -98,7 +98,7 @@ function DSRcategory() {
 
   const postAllJobs = async () => {
     try {
-      const res = await axios.post(apiURL + "/postservicecatdevideddatesnew", {
+      const res = await axios.post( apiURL+"/postservicecatdevideddatesnew", {
         category: dCategory,
         startDate: rstart,
         endDate: rend,

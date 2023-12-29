@@ -6,7 +6,7 @@ import Table from "react-bootstrap/Table";
 import { Link, useNavigate } from "react-router-dom";
 import Enquirynav from "../Enquirynav";
 
-function Enquirynew() {
+function Today() {
   const navigate = useNavigate();
   const [filterdata, setfilterdata] = useState([]);
   const apiURL = process.env.REACT_APP_API_URL;
@@ -26,20 +26,32 @@ function Enquirynew() {
   const [searchResponse, setSearchResponse] = useState("");
   const [searchDesc, setSearchDesc] = useState("");
   const [searchNxtfoll, setSearchNxtfoll] = useState("");
+  const [flwdata, setflwdata] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(25);
 
   useEffect(() => {
     getenquiry();
+    getenquiryfollowup();
   }, []);
 
   const getenquiry = async () => {
-    let res = await axios.get(apiURL + "/getallnewfollow");
+    let res = await axios.get(apiURL + "/getenquiry12");
     if ((res.status = 200)) {
       setfilterdata(res.data?.enquiryadd);
-
       setSearchResults(res.data?.enquiryadd);
+    }
+  };
+
+  const getenquiryfollowup = async () => {
+    try {
+      let res = await axios.get(apiURL + `/getenquiryfollowup`);
+      if ((res.status = 200)) {
+        setflwdata(res.data?.enquiryfollowup);
+      }
+    } catch (error) {
+      console.log("Error", error);
     }
   };
 
@@ -196,16 +208,18 @@ function Enquirynew() {
     }
   }
   // Pagination logic
-  const totalPages = Math.ceil(searchResults.length / itemsPerPage);
-  const pageOptions = Array.from(
-    { length: totalPages },
-    (_, index) => index + 1
-  );
+  // const totalPages = Math.ceil(searchResults.length / itemsPerPage);
+  // const pageOptions = Array.from(
+  //   { length: totalPages },
+  //   (_, index) => index + 1
+  // );
 
   // Get current items for the current page
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = searchResults.slice(indexOfFirstItem, indexOfLastItem);
+  // const indexOfLastItem = currentPage * itemsPerPage;
+  // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // const currentItems = searchResults.slice(indexOfFirstItem, indexOfLastItem);
+
+  // console.log("currentItems=======", currentItems);
 
   // Change page
   const handlePageChange = (selectedPage) => {
@@ -213,7 +227,19 @@ function Enquirynew() {
   };
 
   // Calculate the starting serial number based on the current page
-  const startSerialNumber = (currentPage - 1) * itemsPerPage + 1;
+  // const startSerialNumber = (currentPage - 1) * itemsPerPage + 1;
+
+  const mergingArray = searchResults.map((ele) => {
+    const matchingData = flwdata.find(
+      (item) => item.EnquiryId === ele.EnquiryId
+    );
+    return {
+      ...matchingData,
+      ...ele,
+    };
+  });
+ 
+
   return (
     <div>
       <Header />
@@ -223,7 +249,7 @@ function Enquirynew() {
       <div className="row m-auto">
         <div className="col-md-12">
           {/* Pagination */}
-          <div className="pagination">
+          {/* <div className="pagination">
             <span>Page </span>
             <select
               className="m-1"
@@ -237,12 +263,12 @@ function Enquirynew() {
               ))}
             </select>
             <span> of {totalPages}</span>
-          </div>
+          </div> */}
           <table>
             <thead>
               <tr className="bg ">
                 <th scope="col">
-                  <input className="vhs-table-input" />{" "}
+                 
                 </th>
                 <th scope="col">
                   {" "}
@@ -322,11 +348,18 @@ function Enquirynew() {
                   <input
                     placeholder="Reference"
                     className="vhs-table-input"
+                    value={searchReference}
+                    onChange={(e) => setSearchReference(e.target.value)}
+                  />{" "}
+                </th>
+                <th scope="col">
+                  <input
+                    placeholder="Reference"
+                    className="vhs-table-input"
                     value={searchReference2}
                     onChange={(e) => setSearchReference2(e.target.value)}
                   />{" "}
                 </th>
-
                 <th scope="col">
                   {" "}
                   <input
@@ -336,25 +369,37 @@ function Enquirynew() {
                     onChange={(e) => setSearchInterest(e.target.value)}
                   />
                 </th>
+                <th scope="col">
+                  <input placeholder="Excutive" className="vhs-table-input" />
+                </th>
+                <th scope="col">
+                  <input placeholder="Responce" className="vhs-table-input" />
+                </th>
+                <th scope="col">
+                  <input placeholder="Desc" className="vhs-table-input" />
+                </th>
               </tr>
               <tr className="bg">
                 <th className="bor">#</th>
                 <th className="bor">Category</th>
                 <th className="bor" style={{ width: "100px" }}>
-                  Date
+                  Date & Time
                 </th>
 
                 <th className="bor">Name</th>
                 <th className="bor">Contact</th>
                 <th className="bor">Address</th>
                 <th className="bor">City</th>
+                <th className="bor">Reference1</th>
                 <th className="bor">Reference2</th>
-
                 <th className="bor">Interested for</th>
+                <th className="bor">Executive Name</th>
+                <th className="bor">responce </th>
+                <th className="bor">Description</th>
               </tr>
             </thead>
             <tbody>
-              {currentItems.map((item, index) => (
+              {mergingArray.map((item, index) => (
                 <a onClick={() => enquirydetail(item)} className="tbl">
                   <tr
                     key={item.id}
@@ -364,9 +409,11 @@ function Enquirynew() {
                       color: "black",
                     }}
                   >
-                    <td>{startSerialNumber + index}</td>
+                    <td>{index + 1}</td>
                     <td>{item.category}</td>
-                    <td>{item.date}</td>
+                    <td>
+                      {item.date} <br /> {item.Time}
+                    </td>
 
                     <td>{item.name}</td>
                     <td>{item.mobile}</td>
@@ -374,7 +421,12 @@ function Enquirynew() {
                     <td>{item.city}</td>
 
                     <td>{item.reference1}</td>
+                    <td>{item.reference2}</td>
                     <td>{item.intrestedfor}</td>
+                    <td>{item.staffname}</td>
+                    <td>{item.response}</td>
+                    <td>{item.desc}</td>
+
                     {/* <td>{item.folldate}</td>
                     <td>{item.staffname}</td>
                     <td>{item.response}</td>
@@ -391,4 +443,4 @@ function Enquirynew() {
   );
 }
 
-export default Enquirynew;
+export default Today;

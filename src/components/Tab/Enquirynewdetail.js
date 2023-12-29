@@ -70,7 +70,7 @@ function Enquirynewdetail(props) {
 
   let i = 1;
 
-  // new and not interested
+  // new andr
   const addenquiryfollowup1 = async (e) => {
     e.preventDefault();
 
@@ -97,7 +97,7 @@ function Enquirynewdetail(props) {
         if (response.status === 200) {
           makeApiCall(whatsappTemplate, enquiryData?.mobile);
           getenquiryfollowup();
-          window.location.assign(`/enquirydetail/${EnquiryId}?${urlParams}`);
+          // window.location.assign(`/enquirydetail/${EnquiryId}?${urlParams}`);
         }
       });
     } catch (error) {
@@ -315,6 +315,8 @@ function Enquirynewdetail(props) {
     const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
 
     const contentTemplate = selectedResponse?.template || "";
+    const executivename=admin.displayname || "";
+
 
     if (!contentTemplate) {
       console.error("Content template is empty. Cannot proceed.");
@@ -325,12 +327,16 @@ function Enquirynewdetail(props) {
       /\{Customer_name\}/g,
       enquiryData?.name
     );
+
+
     const contentWithNames = content.replace(
-      /\{Executive_name\}/g,
-      enquiryData?.executive
+      /Executive_name/gi,
+      executivename
     );
+    
+  
     const contentWithMobile = contentWithNames.replace(
-      /\{Executive_contact\}/g,
+      /Executive_contact/gi,
       admin?.contactno
     );
 
@@ -342,6 +348,8 @@ function Enquirynewdetail(props) {
       .replace(/&nbsp;/g, "")
       .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
       .replace(/<[^>]*>/g, "");
+
+     
 
     const requestData = [
       {
@@ -366,7 +374,8 @@ function Enquirynewdetail(props) {
         console.error("API call unsuccessful. Status code:", response.status);
       }
     } catch (error) {
-      console.error("Error making API call:", error);
+      alert(error.message)
+      console.error("Error making API call:", error.message);
     }
   };
 
@@ -693,7 +702,7 @@ function Enquirynewdetail(props) {
 
                                   {whatsappTemplate &&
                                   whatsappTemplate.response ===
-                                    "Not Interested" ? (
+                                    "Not Intrested" ? (
                                     <>
                                       <div className="row pt-3">
                                         <div className="col-md-4"></div>

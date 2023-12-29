@@ -41,7 +41,6 @@ function User() {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  console.log(userdata);
   const handleClick = (divNum) => () => {
     setSelected(divNum);
   };
@@ -92,7 +91,7 @@ function User() {
   const getuser = async () => {
     let res = await axios.get(apiURL + "/master/getuser");
     if (res.status === 200) {
-      console.log(res.data.masteruser);
+    
       setuserdata(res.data?.masteruser);
       setfilterdata(res.data?.masteruser);
     }

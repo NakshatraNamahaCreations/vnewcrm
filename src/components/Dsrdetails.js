@@ -65,8 +65,15 @@ function Dsrdetails() {
       ? data.dsrdata.find((item) => item.serviceDate === data1).jobComplete
       : "";
   }
+  const [selectedTechId, setSelectedTechId] = useState("");
 
+  const [whatsappTemplate, setWhatsappTemplate] = useState("");
+  const [whatsappdata, setwhatsappdata] = useState([]);
   const [jobComplete, setjobComplete] = useState(defaultChecked1);
+  const [scompletewhat, setscompletewhat] = useState([]);
+  const [assigntechwhat, setassigntechwhat] = useState([]);
+  const [scancelwhat, setscancelwhat] = useState([]);
+  const [sreschdulewhat, setsreschdulewhat] = useState([]);
 
   // Initialize the type state based on the initialType value
   let defaultChecked = "";
@@ -85,12 +92,6 @@ function Dsrdetails() {
           .TechorPMorVendorName
       : ""
   );
-
-  const [selectedTechId, setSelectedTechId] = useState("");
-
-  
-  const [whatsappTemplate, setWhatsappTemplate] = useState("");
-  const [whatsappdata, setwhatsappdata] = useState([]);
 
   useEffect(() => {
     gettechnician();
@@ -149,6 +150,31 @@ function Dsrdetails() {
       setslotesdata(res.data?.slots);
     }
   };
+
+  const [techdetailsk, setTechDetailsk] = useState([]);
+
+  useEffect(() => {
+    getTechById();
+  }, [selectedTechId]);
+  
+  const getTechById = async () => {
+    try {
+      let res = await axios.get(
+        `https://api.vijayhomeservicebengaluru.in/api/gettechnicianbyid/${selectedTechId}`
+      );
+  
+      if (res.status === 200 && res.data?.technician) {
+        setTechDetailsk(res.data.technician);
+      } else {
+        // Handle the case where data is not available
+        console.error("Technician details not available");
+      }
+    } catch (error) {
+      // Handle the case where the request fails
+      console.error("Error fetching technician details:", error);
+    }
+  };
+  
 
   const getnameof = async () => {
     let res = await axios.get(apiURL + "/getalltechnician");
@@ -284,11 +310,24 @@ function Dsrdetails() {
       };
       await axios(config).then(function (response) {
         if (response.status === 200) {
-          console.log("success");
-          alert(" Added");
           setLoading(false);
           setSV(false);
-          window.location.assign(`/dsrcallist/${data1}/${data.category}`);
+
+          if (jobComplete === "CANCEL") {
+            const selectedResponse = scancelwhat[0];
+
+            whatsappscancel(
+              selectedResponse,
+              data.customerData[0]?.mainContact
+            );
+          } else {
+            const selectedResponse = assigntechwhat[0];
+
+            whatsapptectassign(
+              selectedResponse,
+              data.customerData[0]?.mainContact
+            );
+          }
         }
       });
     } catch (error) {
@@ -302,89 +341,110 @@ function Dsrdetails() {
   // 16-9
   const Update = async (e) => {
     e.preventDefault();
+    if (jobComplete === "CANCEL") {
+      setShow(true);
+    } else {
+      try {
+        const config = {
+          url: `/updatedsrdata/${dsrdata[0]?._id}`,
+          method: "post",
+          baseURL: apiURL,
+          // data: formdata,
+          headers: { "content-type": "application/json" },
+          data: {
+            bookingDate: bookingDate,
+            serviceInfo: {
+              _id: data._id,
+              customerData: data.customerData,
+              dCategory: data.dCategory,
+              cardNo: data.cardNo,
+              contractType: data.contractType,
+              service: data.service,
+              planName: data.planName,
+              slots: data.slots,
+              serviceId: data.serviceId,
+              serviceCharge: data.serviceCharge,
+              serviceDate: data.serviceDate,
+              desc: data.desc,
 
-    try {
-      const config = {
-        url: `/updatedsrdata/${dsrdata[0]?._id}`,
-        method: "post",
-        baseURL: apiURL,
-        // data: formdata,
-        headers: { "content-type": "application/json" },
-        data: {
-          bookingDate: bookingDate,
-          serviceInfo: {
-            _id: data._id,
-            customerData: data.customerData,
-            dCategory: data.dCategory,
-            cardNo: data.cardNo,
-            contractType: data.contractType,
-            service: data.service,
-            planName: data.planName,
-            slots: data.slots,
-            serviceId: data.serviceId,
-            serviceCharge: data.serviceCharge,
-            serviceDate: data.serviceDate,
-            desc: data.desc,
+              category: data.category,
+              expiryDate: data.expiryDate,
 
-            category: data.category,
-            expiryDate: data.expiryDate,
+              dividedDates: data.dividedDates,
+              dividedCharges: data.dividedCharges,
+              dividedamtDates: data.dividedamtDates,
+              dividedamtCharges: data.dividedamtCharges,
+              oneCommunity: data.oneCommunity,
+              communityId: data.communityId,
+              BackofficeExecutive: data.BackofficeExecutive,
+              deliveryAddress: data.deliveryAddress,
+              type: data.type,
+              userId: data.userId,
+              selectedSlotText: data.selectedSlotText,
+              AddOns: data.AddOns,
+              TotalAmt: data.TotalAmt,
+              GrandTotal: data.GrandTotal,
 
-            dividedDates: data.dividedDates,
-            dividedCharges: data.dividedCharges,
-            dividedamtDates: data.dividedamtDates,
-            dividedamtCharges: data.dividedamtCharges,
-            oneCommunity: data.oneCommunity,
-            communityId: data.communityId,
-            BackofficeExecutive: data.BackofficeExecutive,
-            deliveryAddress: data.deliveryAddress,
-            type: data.type,
-            userId: data.userId,
-            selectedSlotText: data.selectedSlotText,
-            AddOns: data.AddOns,
-            TotalAmt: data.TotalAmt,
-            GrandTotal: data.GrandTotal,
-
-            city: data.city,
+              city: data.city,
+            },
+            jobCategory: jobCategory,
+            complaintRef: data.complaintRef,
+            priorityLevel: priorityLevel,
+            appoDate: data1,
+            appoTime: appoTime,
+            customerFeedback: customerFeedback,
+            jobType: jobType,
+            techComment: techComment,
+            backofficerExe: admin.displayname,
+            backofficerno: admin.contactno,
+            techName: techName,
+            showinApp: Showinapp,
+            sendSms: sendSms,
+            type: type,
+            jobComplete: jobComplete,
+            workerAmount: workerAmount,
+            workerName: workerName,
+            daytoComplete: daytoComplete,
+            TechorPMorVendorID: selectedTechId
+              ? selectedTechId
+              : dsrdata[0]?.selectedTechId,
+            TechorPMorVendorName: selectedTechName,
+            cancelOfficerName: admin.displayname,
+            cancelOfferNumber: admin.contactno,
+            reason: Reason,
+            techName: techName,
+            cancelDate: moment().format("MMMM Do YYYY, h:mm:ss a"),
           },
-          jobCategory: jobCategory,
-          complaintRef: data.complaintRef,
-          priorityLevel: priorityLevel,
-          appoDate: data1,
-          appoTime: appoTime,
-          customerFeedback: customerFeedback,
-          jobType: jobType,
-          techComment: techComment,
-          backofficerExe: admin.displayname,
-          backofficerno: admin.contactno,
-          techName: techName,
-          showinApp: Showinapp,
-          sendSms: sendSms,
-          type: type,
-          jobComplete: jobComplete,
-          workerAmount: workerAmount,
-          workerName: workerName,
-          daytoComplete: daytoComplete,
-          TechorPMorVendorID: selectedTechId
-            ? selectedTechId
-            : dsrdata[0]?.selectedTechId,
-          TechorPMorVendorName: selectedTechName,
-          cancelOfficerName: admin.displayname,
-          cancelOfferNumber: admin.contactno,
-          reason: Reason,
-          techName: techName,
-          cancelDate: moment().format("MMMM Do YYYY, h:mm:ss a"),
-        },
-      };
-      await axios(config).then(function (response) {
-        if (response.status === 200) {
-          setShow(false);
+        };
+        await axios(config).then(function (response) {
+          if (response.status === 200) {
+            setShow(false);
+            if (jobComplete === "YES") {
+              const selectedResponse = scompletewhat[0];
+              whatsappscomplete(
+                selectedResponse,
+                data.customerData[0]?.mainContact
+              );
+            } else if (jobComplete === "CANCEL") {
+              const selectedResponse = scancelwhat[0];
 
-          window.location.assign(`/dsrcallist/${data1}/${data.category}`);
-        }
-      });
-    } catch (error) {
-      console.error(error);
-      alert("Somthing went wrong");
+              whatsappscancel(
+                selectedResponse,
+                data.customerData[0]?.mainContact
+              );
+            } else {
+              const selectedResponse = scancelwhat[0];
+              whatsapptectassign(
+                selectedResponse,
+                data.customerData[0]?.mainContact
+              );
+            }
+          }
+        });
+      } catch (error) {
+        console.error(error);
+        alert("Somthing went wrong");
+      }
     }
   };
 
@@ -435,7 +495,7 @@ function Dsrdetails() {
 
   useEffect(() => {
     getAlldata();
-  }, [data]);
+  }, []);
 
   const getAlldata = async () => {
     try {
@@ -480,11 +540,7 @@ function Dsrdetails() {
   const renderStartDate = updatedStartTime || "0000-00-00 00:00:00";
   const renderEndDate = updatedEndTime || "0000-00-00 00:00:00";
 
-  // console.log("Formatted Start Date:", renderStartDate);
-  // console.log("Formatted End Date:", renderEndDate);
-
   let i = 1;
-  const dataByCity = {};
 
   useEffect(() => {
     getwhatsapptemplate();
@@ -494,10 +550,28 @@ function Dsrdetails() {
     try {
       let res = await axios.get(apiURL + "/getwhatsapptemplate");
       if (res.status === 200) {
-        // console.log("whatsapp template", res.data);
-        let getTemplateDatails = res.data?.whatsapptemplate?.filter(
+        const data = res.data?.whatsapptemplate;
+        let getTemplateDatails = data.filter(
           (item) => item.templatename === "Send Invoice Link"
         );
+
+        let assigntechtemp = data.filter(
+          (item) => item.templatename === "Tech assign"
+        );
+        let scompltetemp = data.filter(
+          (item) => item.templatename === "Service Completed"
+        );
+        let scanceltemp = data.filter(
+          (item) => item.templatename === "Service cancel"
+        );
+        let sreschedultemp = data.filter(
+          (item) => item.templatename === "Service reschedule"
+        );
+
+        setscompletewhat(scompltetemp);
+        setassigntechwhat(assigntechtemp);
+        setscancelwhat(scanceltemp);
+        setsreschdulewhat(sreschedultemp);
         setwhatsappdata(getTemplateDatails);
       }
     } catch (error) {
@@ -534,7 +608,7 @@ function Dsrdetails() {
       console.error("Content template is empty. Cannot proceed.");
       return;
     }
-    console.log("91" + data.customerData[0]?.mainContact);
+
     const content = contentTemplate.replace(
       /\{Customer_name\}/g,
       data.customerData[0]?.customerName
@@ -551,7 +625,6 @@ function Dsrdetails() {
       /\{Invoice_link\}/g,
       `[Click to view invoice](${invoiceUrl})`
     );
-    const plainTextContent = stripHtml(invoiceLink);
 
     // Replace <p> with line breaks and remove HTML tags
     const convertedText = invoiceLink
@@ -590,11 +663,246 @@ function Dsrdetails() {
     }
   };
 
-  function stripHtml(html) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const plainText = doc.body.textContent || "";
-    return plainText.replace(/\r?\n/g, " ");
-  }
+  const whatsapptectassign = async (
+    selectedResponse,
+    contactNumber,
+    invoiceId
+  ) => {
+    const apiURL =
+      "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
+    const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
+
+    const contentTemplate = selectedResponse?.template || "";
+
+    if (!contentTemplate) {
+      console.error("Content template is empty. Cannot proceed.");
+      return;
+    }
+
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
+      .replace(/\{Job_type\}/g, data?.desc)
+      .replace(/\{Service_amount\}/g, data.GrandTotal)
+      .replace(/\{Call_date\}/g, data.serviceDate)
+      .replace(/\{Slot_timing\}/g, data.selectedSlotText)
+      .replace(/\{Staff_name\}/g, admin.displayname)
+      .replace(/\{Staff_contact\}/g, admin.contactno)
+      .replace(/\{Technician_name\}/g, selectedTechName)
+      .replace(/\{Technician_experiance\}/g, techdetailsk?.experiance)
+      .replace(/\{Technician_languages_known\}/g, techdetailsk?.languagesknow);
+
+    // Replace <p> with line breaks and remove HTML tags
+    const convertedText = invoiceLink
+      .replace(/<p>/g, "\n")
+      .replace(/<\/p>/g, "")
+      .replace(/<br>/g, "\n")
+      .replace(/&nbsp;/g, "")
+      .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
+      .replace(/<[^>]*>/g, "");
+
+    const requestData = [
+      {
+        dst: "91" + contactNumber,
+        messageType: "0",
+        textMessage: {
+          content: convertedText,
+        },
+      },
+    ];
+    try {
+      const response = await axios.post(apiURL, requestData, {
+        headers: {
+          "access-token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        setWhatsappTemplate(response.data);
+        window.location.assign(`/dsrcallist/${data1}/${data.category}`);
+      } else {
+        console.error("API call unsuccessful. Status code:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making API call:", error);
+    }
+  };
+
+  const whatsappscomplete = async (selectedResponse, contactNumber) => {
+    const apiURL =
+      "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
+    const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
+
+    const contentTemplate = selectedResponse?.template || "";
+
+    if (!contentTemplate) {
+      console.error("Content template is empty. Cannot proceed.");
+      return;
+    }
+
+    const googleform =
+      "https://docs.google.com/forms/d/e/1FAIpQLSeldzBperWqrReLAA5AV6gVEftCOT3vUglibWScSWdzDAPjkA/viewform";
+
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
+      .replace(/\{Service_name\}/g, data?.service)
+      .replace(/\{Service_amount\}/g, data.GrandTotal)
+      .replace(/\{Invoice_link\}/g, data.serviceDate)
+      .replace(/\{google_Form\}/g, googleform);
+
+    // Replace <p> with line breaks and remove HTML tags
+    const convertedText = invoiceLink
+      .replace(/<p>/g, "\n")
+      .replace(/<\/p>/g, "")
+      .replace(/<br>/g, "\n")
+      .replace(/&nbsp;/g, "")
+      .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
+      .replace(/<[^>]*>/g, "");
+
+    const requestData = [
+      {
+        dst: "91" + contactNumber,
+        messageType: "0",
+        textMessage: {
+          content: convertedText,
+        },
+      },
+    ];
+    try {
+      const response = await axios.post(apiURL, requestData, {
+        headers: {
+          "access-token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        setWhatsappTemplate(response.data);
+        window.location.assign(`/dsrcallist/${data1}/${data.category}`);
+      } else {
+        console.error("API call unsuccessful. Status code:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making API call:", error);
+    }
+  };
+
+  const whatsappscancel = async (selectedResponse, contactNumber) => {
+    const apiURL =
+      "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
+    const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
+
+    const contentTemplate = selectedResponse?.template || "";
+
+    if (!contentTemplate) {
+      console.error("Content template is empty. Cannot proceed.");
+      return;
+    }
+
+    const googleform =
+      "https://docs.google.com/forms/d/e/1FAIpQLSdZjDyG7QsnwVnCnhkrFEHguWP5vNxTi03KZWgap0xXd5_geQ/viewform";
+
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
+      .replace(/\{Service_name\}/g, data?.service)
+      .replace(/\{Service_date\}/g, data.serviceDate)
+
+      .replace(/\{google Form\}/g, googleform);
+
+    // Replace <p> with line breaks and remove HTML tags
+    const convertedText = invoiceLink
+      .replace(/<p>/g, "\n")
+      .replace(/<\/p>/g, "")
+      .replace(/<br>/g, "\n")
+      .replace(/&nbsp;/g, "")
+      .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
+      .replace(/<[^>]*>/g, "");
+
+    const requestData = [
+      {
+        dst: "91" + contactNumber,
+        messageType: "0",
+        textMessage: {
+          content: convertedText,
+        },
+      },
+    ];
+    try {
+      const response = await axios.post(apiURL, requestData, {
+        headers: {
+          "access-token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        setWhatsappTemplate(response.data);
+        window.location.assign(`/dsrcallist/${data1}/${data.category}`);
+      } else {
+        console.error("API call unsuccessful. Status code:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making API call:", error);
+    }
+  };
+
+  const whatsappreschedule = async (
+    selectedResponse,
+    contactNumber,
+    invoiceId
+  ) => {
+    const apiURL =
+      "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
+    const accessToken = "c7475f11-97cb-4d52-9500-f458c1a377f4";
+
+    const contentTemplate = selectedResponse?.template || "";
+
+    if (!contentTemplate) {
+      console.error("Content template is empty. Cannot proceed.");
+      return;
+    }
+    const invoiceLink = contentTemplate
+      .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
+      .replace(/\{Service_name\}/g, data.service)
+      .replace(/\{service_date\}/g, data1)
+      .replace(/\{reschedule_ service_date\}/g, appoDate);
+
+    // Replace <p> with line breaks and remove HTML tags
+    const convertedText = invoiceLink
+      .replace(/<p>/g, "\n")
+      .replace(/<\/p>/g, "")
+      .replace(/<br>/g, "\n")
+      .replace(/&nbsp;/g, "")
+      .replace(/<strong>(.*?)<\/strong>/g, "<b>$1</b>")
+      .replace(/<[^>]*>/g, "");
+
+    const requestData = [
+      {
+        dst: "91" + contactNumber,
+        messageType: "0",
+        textMessage: {
+          content: convertedText,
+        },
+      },
+    ];
+    try {
+      const response = await axios.post(apiURL, requestData, {
+        headers: {
+          "access-token": accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        setWhatsappTemplate(response.data);
+        window.location.assign(`/dsrcallist/${data1}/${data.category}`);
+      } else {
+        console.error("API call unsuccessful. Status code:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making API call:", error);
+    }
+  };
 
   const date = new Date(data?.createdAt);
 
@@ -649,8 +957,14 @@ function Dsrdetails() {
 
         if (response.status === 200) {
           setShow1(false);
-          alert("Updated");
-          window.location.reload(``);
+
+          const selectedResponse = sreschdulewhat[0];
+
+          whatsappreschedule(
+            selectedResponse,
+            data.customerData[0]?.mainContact
+          );
+       
         }
       } catch (error) {
         if (error.response) {
@@ -701,6 +1015,7 @@ function Dsrdetails() {
       await axios(config).then(function (response) {
         if (response.status === 200) {
           alert("Successfully Added");
+
           window.location.reload(``);
         }
       });
@@ -1448,7 +1763,7 @@ function Dsrdetails() {
                   )}
 
                   <div className="col-md-2">
-                    {!data?.quotedata ? (
+                    {!data ? (
                       <button className="vhs-button">Invoice</button>
                     ) : (
                       <Link

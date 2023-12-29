@@ -168,6 +168,7 @@ import DSR_Invoice from "./components/DSR_Invoice";
 import Test from "./components/Test";
 import New from "./components/Tab/New";
 import Quotations from "./components/Tab/Quotations";
+import Today from "./components/Tab/Today";
 
 function App() {
   return (
@@ -296,7 +297,7 @@ function App() {
           <Route path="/new" element={<New />} />
           <Route path="/context" element={<Contextdata />} />
           <Route path="/quoteappconfirmed" element={<Quoteappconfirmed />} />
-
+          <Route path="/enquirytoday" element={<Today />} />
           <Route path="/dsrcallist/:date/:category" element={<Dsrcallist />} />
           <Route path="/paymentcalender" element={<Paymentcalender />} />
           <Route

@@ -25,6 +25,11 @@ function Enquirynav() {
             </NavLink>
           </li>
           <li>
+            <NavLink to="/enquirytoday" activeClassName="active">
+            Today
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/enquirysearch" activeClassName="active">
               Enquiry Search
             </NavLink>

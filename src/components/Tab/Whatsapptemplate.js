@@ -16,7 +16,7 @@ function Whatsapptemplate() {
   const [filterdata, setfilterdata] = useState([]);
   const [whatsappdata, setwhatsappdata] = useState([]);
   const apiURL = process.env.REACT_APP_API_URL;
-  console.log("whatsappdata", whatsappdata);
+
 
   const addwhatsappTemplate = async (e) => {
     e.preventDefault();
@@ -62,7 +62,7 @@ function Whatsapptemplate() {
     })
       .then(function (response) {
         //handle success
-        console.log(response);
+
         alert("Deleted successfully");
         window.location.reload();
       })
@@ -257,6 +257,9 @@ function Whatsapptemplate() {
                         <b>Appointment_datetime</b>
                       </div>{" "}
                       <hr />
+                      <div className="col-md-6">
+                        <b>Slot_timing</b>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -476,6 +479,9 @@ function Whatsapptemplate() {
                       <div>
                         <b>Appointment_datetime</b>
                       </div>{" "}
+                      <div>
+                        <b>Slot_timing</b>
+                      </div>
                     </div>
                   </div>
                 </div>

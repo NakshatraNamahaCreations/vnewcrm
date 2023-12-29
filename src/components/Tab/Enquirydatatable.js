@@ -48,7 +48,7 @@ function Enquirydatatable() {
     }
   };
 
-  console.log("nn", filterdata);
+ 
   const enquirydetail = (data) => {
     navigate(`/enquirydetail/${data.EnquiryId}`);
   };
@@ -321,6 +321,14 @@ function Enquirydatatable() {
 
                 <th scope="col">
                   <input
+                    placeholder="Nxt foll"
+                    className="vhs-table-input"
+                    value={searchReference}
+                    onChange={(e) => setSearchReference(e.target.value)}
+                  />{" "}
+                </th>
+                <th scope="col">
+                  <input
                     placeholder="Reference"
                     className="vhs-table-input"
                     value={searchReference2}
@@ -371,14 +379,7 @@ function Enquirydatatable() {
                     onChange={(e) => setSearchDesc(e.target.value)}
                   />{" "}
                 </th>
-                <th scope="col">
-                  <input
-                    placeholder="Nxt foll"
-                    className="vhs-table-input"
-                    value={searchNxtfoll}
-                    onChange={(e) => setSearchNxtfoll(e.target.value)}
-                  />{" "}
-                </th>
+               
               </tr>
               <tr className="bg">
                 <th>#</th>
@@ -389,6 +390,7 @@ function Enquirydatatable() {
                 <th>Contact</th>
                 <th>Address</th>
                 <th>City</th>
+                <th>Reference1</th>
                 <th>Reference2</th>
 
                 <th>Interested for</th>
@@ -396,7 +398,7 @@ function Enquirydatatable() {
                 <th>Staff</th>
                 <th>Response</th>
                 <th>Desc</th>
-                <th>Nxt Foll</th>
+                {/* <th>Nxt Foll</th> */}
               </tr>
             </thead>
             <tbody>
@@ -412,20 +414,20 @@ function Enquirydatatable() {
                   >
                     <td>{index + 1}</td>
                     <td>{item.category}</td>
-                    <td>{item.enquirydata[0]?.enquirydate}</td>
+                    <td>{item.enquirydata[0]?.date} <br /> {item.enquirydata[0]?.Time}</td>
 
                     <td>{item.enquirydata[0]?.name}</td>
                     <td>{item.enquirydata[0]?.mobile}</td>
                     <td>{item.enquirydata[0]?.address}</td>
                     <td>{item.enquirydata[0]?.city}</td>
-
+                    <td>{item.enquirydata[0]?.reference1}</td>
                     <td>{item.enquirydata[0]?.reference2}</td>
                     <td>{item.enquirydata[0]?.intrestedfor}</td>
                     <td>{item.folldate}</td>
                     <td>{item.staffname}</td>
                     <td>{item.response}</td>
                     <td>{item.desc}</td>
-                    <td>{item.nxtfoll}</td>
+                    {/* <td>{item.nxtfoll}</td> */}
                   </tr>
                 </a>
               ))}

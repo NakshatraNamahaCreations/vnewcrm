@@ -8,6 +8,7 @@ import { parse, isBefore, isAfter, isSameDay } from "date-fns";
 
 import moment from "moment";
 function Report_Enquiry() {
+  const admin = JSON.parse(sessionStorage.getItem("admin"));
   const apiURL = process.env.REACT_APP_API_URL;
   const [enquiryData, setEnquiryData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -16,187 +17,113 @@ function Report_Enquiry() {
   const [reference1, setReference1] = useState("");
   const [response, setResponse] = useState("");
   const [city, setCity] = useState("");
-  const [excuitive, setExcuitive] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState(moment().format("YYYY-MM-DD"));
+  const [executive, setExcuitive] = useState("");
+  const [fromdate, setfromdate] = useState("");
+  const [todate, setToDate] = useState(moment().format("YYYY-MM-DD"));
   const [category, setCategory] = useState("");
   const [service, setService] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const [buttonClicked, setButtonClicked] = useState(false);
   const [closeWindow, setCloseWindow] = useState(true);
   const [searchValue, setSearchValue] = useState("");
-  // removing duplicate from select options
-  const [duplicateCity, setDuplicateCity] = useState(new Set());
-  const [duplicateReference, setDuplicateReference] = useState(new Set());
-  const [duplicateCategory, setDuplicateCategory] = useState(new Set());
-  const [duplicateExecutive, setDuplicateExecutive] = useState(new Set());
-  const [duplicateStatus, setDuplicateStatus] = useState(new Set());
-  const [duplicateServices, setDuplicateServices] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
-  console.log(fromDate);
+  const [serviceData, setServiceData] = useState([]);
+  const [serviceId, setSeviceId] = useState("");
+  const [serviceName, setSeviceName] = useState("");
+  const [reference, setreferecedata] = useState([]);
+  const [userdata, setuserdata] = useState([]);
+  const [responsedata, setreponsedata] = useState([])
+
   useEffect(() => {
-    const uniqueCity = new Set(
-      enquiryData.map((item) => item.enquirydata[0]?.city).filter(Boolean)
-    );
-    const uniqueReference = new Set(
-      enquiryData.map((item) => item.enquirydata[0]?.reference1).filter(Boolean)
-    );
-    const uniqueCategory = new Set(
-      enquiryData.map((item) => item.category).filter(Boolean)
-    );
-    const uniqueExecutive = new Set(
-      enquiryData.map((item) => item.enquirydata[0]?.executive).filter(Boolean)
-    );
-    const uniqueStatus = new Set(
-      enquiryData.map((item) => item.response).filter(Boolean)
-    );
-    const uniqueServices = new Set(
-      enquiryData
-        .map((item) => item.enquirydata[0]?.intrestedfor)
-        .filter(Boolean)
-    );
+    getreferencetype();
+    getresponse();
+  }, []);
 
-    setDuplicateCity(uniqueCity);
-    setDuplicateReference(uniqueReference);
-    setDuplicateCategory(uniqueCategory);
-    setDuplicateExecutive(uniqueExecutive);
-    setDuplicateStatus(uniqueStatus);
-    setDuplicateServices(uniqueServices);
-  }, [enquiryData]);
+  const getreferencetype = async () => {
+    let res = await axios.get(apiURL + "/master/getreferencetype");
+    if ((res.status = 200)) {
+      setreferecedata(res.data?.masterreference);
+    }
+  };
+  const getresponse = async () => {
+    let res = await axios.get(apiURL + "/getresponse");
+    if ((res.status = 200)) {
+      console.log(res.data.response);
+      setreponsedata(res.data?.response);
+      
+    }
+  };
 
-  const getDsrDetails = async () => {
+
+  // get user=============
+  const getuser = async () => {
     try {
-      const res = await axios.get(apiURL + "/getallflwdata");
+      let res = await axios.get(apiURL + "/master/getuser");
       if (res.status === 200) {
-        const data = res.data.enquiryfollowup;
-        console.log("enquiryfollowup", data);
-        setEnquiryData(data);
-        setFilteredData(data);
+        setuserdata(res.data?.masteruser);
       }
     } catch (error) {
-      console.error("Error fetching DSR details:", error);
+      console.error("Error fetching user data:", error);
+      // Handle the error, e.g., set an error state
+    }
+  };
+  
+  useEffect(() => {
+    getuser();
+  }, []);
+  
+
+  const getServiceByCategory = async () => {
+    try {
+      let res = await axios.post(apiURL + `/userapp/getservicebycategory/`, {
+        category,
+      });
+      if (res.status === 200) {
+        setServiceData(res.data?.serviceData);
+      } else {
+        setServiceData([]);
+      }
+    } catch (error) {
+      console.log("err", error);
     }
   };
 
   useEffect(() => {
-    getDsrDetails();
-  }, []);
+    getServiceByCategory();
+  }, [category]);
 
-  const handleSearch = () => {
-    setFilteredData(enquiryData);
-    setSearchValue("");
-    setShowMessage(true);
+  const filterData = async () => {
+    try {
+      const res = await axios.post(`${apiURL}/searchenquiry`, {
+        category,
+        fromdate,
+        todate,
+        serviceName,
+        city,
+        reference1,
+        reference2,
+        executive,
+        response,
 
-    const filteredResults = enquiryData.filter((item) => {
-      const enquiryDate = parse(
-        item.enquirydata[0]?.date,
-        "MM-dd-yyyy",
-        new Date()
-      );
-      const fromDateObj = fromDate
-        ? parse(fromDate, "yyyy-MM-dd", new Date())
-        : null;
-      const toDateObj = toDate ? parse(toDate, "yyyy-MM-dd", new Date()) : null;
+      });
 
-      const itemCity =
-        city.toLowerCase() === "all" ||
-        item.enquirydata[0]?.city.toLowerCase().includes(city.toLowerCase());
-      const itemFromDate =
-        !fromDate ||
-        isAfter(enquiryDate, fromDateObj) ||
-        isSameDay(enquiryDate, fromDateObj);
-      const itemToDate =
-        !toDate ||
-        isBefore(enquiryDate, toDateObj) ||
-        isSameDay(enquiryDate, toDateObj);
-
-      // Apply filters for status and executive
-      const itemResponse =
-        response.toLowerCase() === "all" ||
-        item.response.toLowerCase().includes(response.toLowerCase());
-      const itemExcuitive =
-        excuitive.toLowerCase() === "all" ||
-        item.enquirydata[0]?.executive
-          .toLowerCase()
-          .includes(excuitive.toLowerCase());
-
-      // Apply other filters
-      const itemInterest =
-        interestFor.toLowerCase() === "all" ||
-        item.enquirydata[0]?.intrestedfor
-          .toLowerCase()
-          .includes(interestFor.toLowerCase());
-      const itemReference1 =
-        reference1.toLowerCase() === "all" ||
-        item.enquirydata[0]?.reference1
-          .toLowerCase()
-          .includes(reference1.toLowerCase());
-      const itemReference2 =
-        reference2.toLowerCase() === "all" ||
-        item.enquirydata[0]?.reference2
-          .toLowerCase()
-          .includes(reference2.toLowerCase());
-      const itemCategory =
-        category.toLowerCase() === "all" ||
-        item.category.toLowerCase().includes(category.toLowerCase());
-      const itemServices =
-        service.toLowerCase() === "all" ||
-        item.enquirydata[0]?.intrestedfor
-          .toLowerCase()
-          .includes(service.toLowerCase());
-
-      const statusAndExecutiveFilter =
-        (item.response.toLowerCase().includes(response.toLowerCase()) ||
-          response.toLowerCase() === "all") &&
-        (item.enquirydata[0]?.executive
-          .toLowerCase()
-          .includes(excuitive.toLowerCase()) ||
-          excuitive.toLowerCase() === "all");
-
-      console.log("Status and Executive Filter:", statusAndExecutiveFilter);
-
-      const isFiltered =
-        itemCity &&
-        itemFromDate &&
-        itemToDate &&
-        statusAndExecutiveFilter &&
-        itemInterest &&
-        itemReference1 &&
-        itemReference2 &&
-        itemCategory &&
-        itemServices;
-
-      console.log("Final Filter Result:", isFiltered);
-
-      return isFiltered;
-    });
-    console.log("filteredResults:", filteredResults);
-    setFilteredData(filteredResults);
-    setSearchValue(
-      interestFor ||
-        reference2 ||
-        reference1 ||
-        response ||
-        city ||
-        excuitive ||
-        fromDate ||
-        toDate ||
-        category ||
-        service
-    );
-    setShowMessage(false);
-    // }
+      if (res.status === 200) {
+        setFilteredData(res.data?.enquiryadd);
+      } else {
+        // Set filterdata to an empty array in case of an error
+        setFilteredData([]);
+      }
+    } catch (error) {
+      setFilteredData([]);
+    }
   };
-
-  console.log("fromDate, toDate", fromDate, toDate);
 
   const handleSearchClick = () => {
     // Call the search function here
 
-    handleSearch();
+    filterData();
     setButtonClicked(true);
-    setFromDate(""); // Add this line
-    setToDate(""); // Add this line
   };
 
   const exportData = () => {
@@ -214,55 +141,44 @@ function Report_Enquiry() {
     },
     {
       name: "Date",
-      selector: (row) =>
-        row.enquirydata[0]?.enquirydate ? row.enquirydata[0]?.enquirydate : "-",
+      selector: (row) => (row.date ? row.date : "-"),
     },
     {
       name: "Time",
-      selector: (row, index) =>
-        row.enquirydata[0]?.time ? row.enquirydata[0]?.time : "-",
+      selector: (row, index) => (row.Time ? row.Time : "-"),
+    },
+    {
+      name: "Category",
+      selector: (row, index) => (row.category ? row.category : "-"),
     },
     {
       name: "Name",
-      selector: (row) =>
-        row.enquirydata[0]?.name ? row.enquirydata[0]?.name : "-",
+      selector: (row) => (row.name ? row.name : "-"),
     },
     {
       name: "Contact",
-      selector: (row) =>
-        row.enquirydata[0]?.mobile ? row.enquirydata[0]?.mobile : "-",
+      selector: (row) => (row.mobile ? row.mobile : "-"),
     },
     {
       name: "Address",
-      selector: (row) =>
-        row.enquirydata[0]?.address ? row.enquirydata[0]?.address : "-",
+      selector: (row) => (row.address ? row.address : "-"),
     },
     {
       name: "Reference",
-      selector: (row) =>
-        row.enquirydata[0]?.reference1 ? row.enquirydata[0]?.reference1 : "-",
+      selector: (row) => (row.reference1 ? row.reference1 : "-"),
     },
-    {
-      name: "Reference 2",
-      selector: (row) =>
-        row.enquirydata[0]?.reference2 ? row.enquirydata[0]?.reference2 : "-",
-    },
+
     {
       name: "City",
-      selector: (row) =>
-        row.enquirydata[0]?.city ? row.enquirydata[0]?.city : "-",
+      selector: (row) => (row.city ? row.city : "-"),
     },
     {
       name: "Interested For",
-      selector: (row) =>
-        row.enquirydata[0]?.intrestedfor
-          ? row.enquirydata[0]?.intrestedfor
-          : "-",
+      selector: (row) => (row.intrestedfor ? row.intrestedfor : "-"),
     },
     {
       name: "Comment",
-      selector: (row) =>
-        row.enquirydata[0]?.comment ? row.enquirydata[0]?.comment : "-",
+      selector: (row) => (row.comment ? row.comment : "-"),
     },
     {
       name: "Followup Remark",
@@ -270,17 +186,16 @@ function Report_Enquiry() {
     },
     {
       name: "Executive",
-      selector: (row) =>
-        row.enquirydata[0]?.executive ? row.enquirydata[0]?.executive : "-",
+      selector: (row) => (row.executive ? row.executive : "-"),
     },
-    {
-      name: "Status",
-      selector: (row) => (row.response ? row.response : "-"),
-    },
-    {
-      name: "Value",
-      selector: (row) => (row.value ? row.value : "-"),
-    },
+    // {
+    //   name: "Status",
+    //   selector: (row) => (row.response ? row.response : "-"),
+    // },
+    // {
+    //   name: "Value",
+    //   selector: (row) => (row.value ? row.value : "-"),
+    // },
   ];
 
   const handleCityChange = (e) => {
@@ -304,6 +219,7 @@ function Report_Enquiry() {
     console.log(selectedService); // Check the selected service value
     setService(selectedService);
   };
+
   return (
     <div style={{ backgroundColor: "#f9f6f6" }} className="web">
       <div>
@@ -336,9 +252,9 @@ function Report_Enquiry() {
                     <div className="col-md-5 ms-4">
                       <input
                         className="report-select"
-                        onChange={(e) => setFromDate(e.target.value)}
+                        onChange={(e) => setfromdate(e.target.value)}
                         type="date"
-                        value={fromDate}
+                        value={fromdate}
                       />
                     </div>
                   </div>
@@ -352,8 +268,8 @@ function Report_Enquiry() {
                         onChange={handleCityChange}
                       >
                         <option>Select</option>
-                        {[...duplicateCity].map((city) => (
-                          <option key={city}>{city}</option>
+                        {admin?.city.map((item) => (
+                          <option value={item.name}>{item.name}</option>
                         ))}
                       </select>
                     </div>
@@ -368,8 +284,13 @@ function Report_Enquiry() {
                         onChange={handleReferenceChange} // Use the handleReferenceChange function
                       >
                         <option>Select</option>
-                        {[...duplicateReference].map((reference) => (
-                          <option key={reference}>{reference}</option>
+                        <option value="userapp">userapp</option>
+                        <option value="website">website</option>
+                        <option value="justdail">justdail</option>
+                        {reference.map((i) => (
+                          <option key={i.referencetype} value={i.referencetype}>
+                            {i.referencetype}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -381,12 +302,22 @@ function Report_Enquiry() {
                     <div className="col-md-1 ms-4">:</div>
                     <div className="col-md-5 ms-4">
                       <select
-                        className="report-select"
-                        onChange={handleServiceChange} // Use the handleServiceChange function
+                        className="col-md-12 vhs-input-value"
+                        onChange={(e) => {
+                          const selectedService = serviceData.find(
+                            (item) => item._id === e.target.value
+                          );
+                          setSeviceId(e.target.value);
+                          setSeviceName(
+                            selectedService ? selectedService.serviceName : ""
+                          );
+                        }}
                       >
-                        <option>Select</option>
-                        {[...duplicateServices].map((service) => (
-                          <option key={service}>{service}</option>
+                        <option>---SELECT---</option>
+                        {serviceData.map((item) => (
+                          <option key={item.id} value={item._id}>
+                            {item.Subcategory} - {item.serviceName}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -404,7 +335,7 @@ function Report_Enquiry() {
                         className="report-select"
                         onChange={(e) => setToDate(e.target.value)}
                         type="date"
-                        value={toDate}
+                        value={todate}
                       />
                     </div>
                   </div>
@@ -418,8 +349,8 @@ function Report_Enquiry() {
                         onClick={(e) => setResponse(e.target.value)}
                       >
                         <option>All</option>
-                        {[...duplicateStatus].map((response) => (
-                          <option>{response}</option>
+                        {responsedata.map((i) => (
+                          <option value={i.response}>{i.response}</option>
                         ))}
                       </select>
                     </div>
@@ -434,8 +365,8 @@ function Report_Enquiry() {
                         onChange={handleExecutiveChange} // Use the handleExecutiveChange function
                       >
                         <option>Select</option>
-                        {[...duplicateExecutive].map((executive) => (
-                          <option key={executive}>{executive}</option>
+                        {userdata.map((i) => (
+                          <option key={i.displayname}>{i.displayname}</option>
                         ))}
                       </select>
                     </div>
@@ -449,11 +380,13 @@ function Report_Enquiry() {
                       <select
                         className="report-select"
                         // style={{ width: "100%" }}
-                        onClick={(e) => setCategory(e.target.value)}
+                        onChange={(e) => setCategory(e.target.value)}
                       >
                         <option>Select</option>
-                        {[...duplicateCategory].map((category) => (
-                          <option key={category}>{category}</option>
+                        {admin?.category.map((category, index) => (
+                          <option key={index} value={category.name}>
+                            {category.name}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -469,10 +402,6 @@ function Report_Enquiry() {
                       backgroundColor: "#a9042e",
                       borderRadius: "5px",
                     }}
-                    // onClick={() => {
-                    //   filterData();
-                    //   setButtonClicked(true);
-                    // }}
                     onClick={handleSearchClick}
                   >
                     Show
@@ -494,6 +423,18 @@ function Report_Enquiry() {
                       // style={{ color: "white", fontSize: "27px" }}
                     ></i>{" "}
                     Export
+                  </button>
+                  <button
+                    className="ps-3 pt-2 pb-2 pe-3"
+                    style={{
+                      border: 0,
+                      color: "white",
+                      backgroundColor: "#a9042e",
+                      borderRadius: "5px",
+                    }}
+                    onClick={handleSearchClick}
+                  >
+                    Clear
                   </button>
                 </p>
                 <p>

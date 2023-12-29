@@ -136,10 +136,8 @@ function Dsrcallist() {
         if (searchTechName) {
           results = results.filter(
             (item) =>
-              item.dsrdata[0]?.TechorPMorVendorName &&
-              item.dsrdata[0]?.TechorPMorVendorName.toLowerCase().includes(
-                searchTechName.toLowerCase()
-              )
+              // item.dsrdata[0]?.TechorPMorVendorName &&
+              item.dsrdata[0]?.TechorPMorVendorName === searchTechName
           );
         }
         if (searchJobType) {
@@ -534,133 +532,140 @@ function Dsrcallist() {
               </tr>
             </thead>
             <tbody>
-              {searchResults?.map((selectedData, index) => (
-                // const chargeForCurrentRow = charge[index] || 0;
-                <tr
-                  className="user-tbale-body"
-                  key={index}
-                  style={{
-                    backgroundColor:
-                      SERVICECOMPLETEDBYOP(selectedData) === "YES"
-                        ? "rgb(182, 96, 255)"
-                        : SERVICECOMPLETED(selectedData)
-                        ? "#4caf50"
-                        : SERVICECANCLE(selectedData) === "CANCEL"
-                        ? "#f44336"
-                        : SERVICESTARTED(selectedData)
-                        ? "#ffeb3b"
-                        : passfunction(selectedData)
-                        ? "#e2e3e5"
-                        : "",
-                  }}
-                >
-                  <Link
-                    to="/dsrdetails "
-                    className="tbl"
-                    state={{
-                      data: selectedData,
-                      data1: date,
-                      TTname: selectedData?.dsrdata[0]?.TechorPMorVendorName,
+              {searchResults
+                .filter((selectedData) => {
+                  const techName = passfunction(selectedData) || ""; // Default to an empty string if techName is undefined
+                  return (
+                    techName.includes(searchTechName) || searchTechName === ""
+                  );
+                })
+                .map((selectedData, index) => (
+                  // const chargeForCurrentRow = charge[index] || 0;
+                  <tr
+                    className="user-tbale-body"
+                    key={index}
+                    style={{
+                      backgroundColor:
+                        SERVICECOMPLETEDBYOP(selectedData) === "YES"
+                          ? "rgb(182, 96, 255)"
+                          : SERVICECOMPLETED(selectedData)
+                          ? "#4caf50"
+                          : SERVICECANCLE(selectedData) === "CANCEL"
+                          ? "#f44336"
+                          : SERVICESTARTED(selectedData)
+                          ? "#ffeb3b"
+                          : passfunction(selectedData)
+                          ? "#e2e3e5"
+                          : "",
                     }}
                   >
-                    <td>{index + 1}</td>
-                    {/* <td>{selectedData.category}</td> */}
-                    <td>{date}</td>
-                    <td>{selectedData?.selectedSlotText}</td>
+                    <Link
+                      to="/dsrdetails"
+                      className="tbl"
+                      state={{
+                        data: selectedData,
+                        data1: date,
+                        TTname: passfunction(selectedData),
+                      }}
+                    >
+                      <td>{index + 1}</td>
+                      {/* <td>{selectedData.category}</td> */}
+                      <td>{date}</td>
+                      <td>{selectedData?.selectedSlotText}</td>
 
-                    <td>{selectedData?.customerData[0]?.customerName}</td>
+                      <td>{selectedData?.customerData[0]?.customerName}</td>
 
-                    {/* {selectedData.city ? (
+                      {/* {selectedData.city ? (
                       <td>{selectedData.city}</td>
                     ) : ( */}
-                    <td>{selectedData?.city}</td>
-                    {/* )} */}
-                    <td>
-                      {selectedData?.deliveryAddress
-                        ? `
+                      <td>{selectedData?.city}</td>
+                      {/* )} */}
+                      <td>
+                        {selectedData?.deliveryAddress
+                          ? `
                         ${selectedData?.deliveryAddress?.platNo},
                         ${selectedData?.deliveryAddress?.address} - 
                         ${selectedData?.deliveryAddress?.landmark}
                         `
-                        : ""}
-                    </td>
+                          : ""}
+                      </td>
 
-                    <td>{selectedData?.customerData[0]?.mainContact}</td>
+                      <td>{selectedData?.customerData[0]?.mainContact}</td>
 
-                    <td>
-                      {selectedData?.dsrdata &&
+                      <td>
+                        {/* {selectedData?.dsrdata &&
                         selectedData?.dsrdata.length > 0 && (
                           <p>
                             {selectedData?.dsrdata[0]?.TechorPMorVendorName}
                           </p>
+                        )} */}
+
+                        {passfunction(selectedData)}
+
+                        {selectedData?.dsrdata[0]?.Tcanceldate && (
+                          <>
+                            <p
+                              style={{
+                                textDecoration: "underline",
+                                marginBottom: 0,
+                              }}
+                            >
+                              Cancel details
+                            </p>
+                            <p style={{ color: "red" }}>
+                              {selectedData?.dsrdata[0]?.Tcanceldate}
+                              <br />
+                              {selectedData?.dsrdata[0]?.Tcancelreason}
+                            </p>
+                          </>
                         )}
 
-                      {/* {passfunction(selectedData)} */}
-
-                      {selectedData?.dsrdata[0]?.Tcanceldate && (
-                        <>
-                          <p
-                            style={{
-                              textDecoration: "underline",
-                              marginBottom: 0,
-                            }}
-                          >
-                            Cancel details
-                          </p>
-                          <p style={{ color: "red" }}>
-                            {selectedData?.dsrdata[0]?.Tcanceldate}
-                            <br />
-                            {selectedData?.dsrdata[0]?.Tcancelreason}
-                          </p>
-                        </>
-                      )}
-
-                      {selectedData?.dsrdata[0]?.rescheduledate && (
-                        <>
-                          <p
-                            style={{
-                              textDecoration: "underline",
-                              marginBottom: 0,
-                            }}
-                          >
-                            Reschedule details
-                          </p>
-                          <p style={{ color: "orange" }}>
-                            {selectedData?.dsrdata[0]?.rescheduledate}
-                            <br />
-                            {selectedData?.dsrdata[0]?.reschedulereason}
-                            <br />
-                            {selectedData?.dsrdata[0]?.rescheduletime}
-                          </p>
-                        </>
-                      )}
-                    </td>
-
-                    {/* <td>{dsrdata[0]?.workerName}</td> */}
-
-                    <td>{selectedData?.service}</td>
-
-                    {selectedData?.type === "userapp" ? (
-                      <td>{selectedData?.GrandTotal}</td>
-                    ) : (
-                      <td>
-                        {selectedData?.contractType === "AMC"
-                          ? returndata(selectedData)
-                            ? returndata(selectedData)
-                            : "0"
-                          : selectedData.serviceCharge}
+                        {selectedData?.dsrdata[0]?.rescheduledate && (
+                          <>
+                            <p
+                              style={{
+                                textDecoration: "underline",
+                                marginBottom: 0,
+                              }}
+                            >
+                              Reschedule details
+                            </p>
+                            <p style={{ color: "orange" }}>
+                              {selectedData?.dsrdata[0]?.rescheduledate}
+                              <br />
+                              {selectedData?.dsrdata[0]?.reschedulereason}
+                              <br />
+                              {selectedData?.dsrdata[0]?.rescheduletime}
+                            </p>
+                          </>
+                        )}
                       </td>
-                    )}
-                    {selectedData?.type === "userapp" ? (
-                      <td>{selectedData.paymentMode}</td>
-                    ) : (
-                      <td>{SERVICEMode(selectedData)}</td>
-                    )}
 
-                    <td>{selectedData?.desc}</td>
-                  </Link>
-                </tr>
-              ))}
+                      {/* <td>{dsrdata[0]?.workerName}</td> */}
+
+                      <td>{selectedData?.service}</td>
+
+                      {selectedData?.type === "userapp" ? (
+                        <td>{selectedData?.GrandTotal}</td>
+                      ) : (
+                        <td>
+                          {selectedData?.contractType === "AMC"
+                            ? returndata(selectedData)
+                              ? returndata(selectedData)
+                              : "0"
+                            : selectedData.serviceCharge}
+                        </td>
+                      )}
+                      {selectedData?.type === "userapp" ? (
+                        <td>{selectedData.paymentMode}</td>
+                      ) : (
+                        <td>{SERVICEMode(selectedData)}</td>
+                      )}
+
+                      <td>{selectedData?.desc}</td>
+                    </Link>
+                  </tr>
+                ))}
             </tbody>
           </table>{" "}
         </div>
