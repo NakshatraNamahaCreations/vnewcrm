@@ -179,15 +179,12 @@ function Customersearchdetails() {
 
   const getAlldata = async () => {
     try {
-      const res = await axios.get(apiURL + "/getaggredsrdata");
+      const res = await axios.get(
+        apiURL + `/getcustomeraggregateaddcals/${id}`
+      );
 
       if (res.status === 200) {
-        const responsedData = res.data.addcall;
-
-        const dsrFilteredData = responsedData.filter(
-          (item) => item.cardNo == id
-        );
-        setDsrData(dsrFilteredData);
+        setDsrData(res.data.runningdata);
       }
     } catch (error) {
       // Handle any errors from the Axios request
@@ -268,7 +265,6 @@ function Customersearchdetails() {
     try {
       let res = await axios.get(apiURL + "/getwhatsapptemplate");
       if (res.status === 200) {
-        console.log("whatsapp template", res.data.whatsapptemplate);
         let getTemplateDatails = res.data?.whatsapptemplate?.filter(
           (item) => item.templatename === "Service Added"
         );
@@ -365,7 +361,6 @@ function Customersearchdetails() {
             const selectedResponse = whatsappdata[0];
             makeApiCall(selectedResponse, customerdata?.mainContact);
             gettreatment();
-          
           }
         });
         // } else {
@@ -600,7 +595,7 @@ function Customersearchdetails() {
 
       if (response.status === 200) {
         setWhatsappTemplate(response.data);
-        
+
         window.location.reload("");
       } else {
         console.error("API call unsuccessful. Status code:", response.status);
@@ -1384,18 +1379,36 @@ function Customersearchdetails() {
                 </tr>
               </thead>
               <tbody>
-                {dsrData.map((item) => (
-                  <tr className="user-tbale-body tbl1">
-                    <td>{i++}</td>
-                    <td>{moment(item.serviceDate).format("DD-MM-YYYY")}</td>
-                    <td> </td>
-                    <td> </td>
-                    <td>{item.TechorPMorVendorName}</td>
-                    <td> </td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                ))}
+                {dsrData
+                  .filter((i) => i.dsrdata[0]?.jobComplete === "YES")
+                  .map((item, index) => (
+                    <tr className="user-tbale-body tbl1">
+                      <td>{index + 1}</td>
+                      <td>
+                        {" "}
+                        {item.contractType === "AMC" ? (
+                          <td>
+                            {item.dividedamtDates.map((a) => (
+                              <div>
+                                <p>{new Date(a.date).toLocaleDateString()}</p>
+                              </div>
+                            ))}
+                          </td>
+                        ) : (
+                          <td>{item.dateofService}</td>
+                        )}
+                      </td>
+                      <td> </td>
+                      <td> </td>
+                      <td>
+                        {item.dsrdata[0]?.TechorPMorVendorName} <br />
+                        {moment(item.createdAt).format("DD-MM-YYYY ,LT")}{" "}
+                      </td>
+                      <td> </td>
+                      <td>{item.desc}</td>
+                      <td style={{color:"darkred"}}>Add Complaint</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -1421,58 +1434,67 @@ function Customersearchdetails() {
                     Service Charges
                   </th>
                   <th className="table-head" scope="col">
-                    Service Count
+                    Tech details
                   </th>
+                  {/* <th className="table-head" scope="col">
+                    Tech details
+                  </th> */}
                   <th className="table-head" scope="col">
                     Action
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {treatmentdata.map((item, index) => (
-                  <div className="tbl">
-                    <tr className="user-tbale-body tbl1">
-                      <td>{index++}</td>
-                      <td>{item.service}</td>
-                      {item.contractType === "AMC" ? (
-                        <td>
-                          {item.dividedDates.map((a) => (
-                            <div>
-                              <p>{new Date(a.date).toLocaleDateString()}</p>
-                            </div>
-                          ))}
-                        </td>
-                      ) : (
-                        <td>{item.dateofService}</td>
-                      )}
-                      {item.contractType === "AMC" ? (
-                        <td>
-                          {item.dividedamtDates.map((a) => (
-                            <div>
-                              <p>{new Date(a.date).toLocaleDateString()}</p>
-                            </div>
-                          ))}
-                        </td>
-                      ) : (
-                        <td>{item.dateofService}</td>
-                      )}
-                      {item.contractType === "AMC" ? (
-                        <td>
-                          {item.dividedamtCharges.map((charge, index) => (
-                            <div key={index}>
-                              <p>{charge.charge}</p>
-                            </div>
-                          ))}
-                        </td>
-                      ) : (
-                        <td>{item.serviceCharge}</td>
-                      )}
-
-                      <td></td>
-                      <td></td>
-                    </tr>
-                  </div>
-                ))}
+                {dsrData
+                  .filter(
+                    (i) =>
+                      i.dsrdata[0]?.jobComplete === "NO" ||
+                      i.dsrdata[0]?.jobComplete === "CANCEL"
+                  )
+                  .map((item, index) => (
+                    <div className="tbl">
+                      <tr className="user-tbale-body tbl1">
+                        <td>{index++}</td>
+                        <td>{item.service}</td>
+                        {item.contractType === "AMC" ? (
+                          <td>
+                            {item.dividedDates.map((a) => (
+                              <div>
+                                <p>{new Date(a.date).toLocaleDateString()}</p>
+                              </div>
+                            ))}
+                          </td>
+                        ) : (
+                          <td>{item.dateofService}</td>
+                        )}
+                        {item.contractType === "AMC" ? (
+                          <td>
+                            {item.dividedamtDates.map((a) => (
+                              <div>
+                                <p>{new Date(a.date).toLocaleDateString()}</p>
+                              </div>
+                            ))}
+                          </td>
+                        ) : (
+                          <td>{item.dateofService}</td>
+                        )}
+                        {item.contractType === "AMC" ? (
+                          <td>
+                            {item.dividedamtCharges.map((charge, index) => (
+                              <div key={index}>
+                                <p>{charge.charge}</p>
+                              </div>
+                            ))}
+                          </td>
+                        ) : (
+                          <td>{item.serviceCharge}</td>
+                        )}
+                        <td>{item.dsrdata[0]?.TechorPMorVendorName}</td>
+                        {/* <td></td> */}
+                        <td></td>
+                      </tr>
+                    </div>
+                  ))}
               </tbody>
             </table>
           </div>

@@ -39,6 +39,7 @@ function Today() {
   const getenquiry = async () => {
     let res = await axios.get(apiURL + "/getenquiry12");
     if ((res.status = 200)) {
+     
       setfilterdata(res.data?.enquiryadd);
       setSearchResults(res.data?.enquiryadd);
     }
@@ -64,6 +65,7 @@ function Today() {
       "_blank"
     );
   };
+
 
   useEffect(() => {
     const filterResults = () => {
@@ -148,22 +150,22 @@ function Today() {
       if (searchStaff) {
         results = results.filter(
           (item) =>
-            item.staffname &&
-            item.staffname.toLowerCase().includes(searchStaff.toLowerCase())
+            item?.enquiryfollowData[0]?.staffname &&
+            item.enquiryfollowData[0]?.staffname.toLowerCase().includes(searchStaff.toLowerCase())
         );
       }
       if (searchResponse) {
         results = results.filter(
           (item) =>
-            item.response &&
-            item.response.toLowerCase().includes(searchResponse.toLowerCase())
+            item.enquiryfollowData[0]?.response &&
+            item.enquiryfollowData[0]?.response.toLowerCase().includes(searchResponse.toLowerCase())
         );
       }
       if (searchDesc) {
         results = results.filter(
           (item) =>
-            item.desc &&
-            item.desc.toLowerCase().includes(searchDesc.toLowerCase())
+            item.enquiryfollowData[0]?.desc &&
+            item.enquiryfollowData[0]?.desc.toLowerCase().includes(searchDesc.toLowerCase())
         );
       }
       if (searchNxtfoll) {
@@ -226,18 +228,7 @@ function Today() {
     setCurrentPage(selectedPage);
   };
 
-  // Calculate the starting serial number based on the current page
-  // const startSerialNumber = (currentPage - 1) * itemsPerPage + 1;
 
-  const mergingArray = searchResults.map((ele) => {
-    const matchingData = flwdata.find(
-      (item) => item.EnquiryId === ele.EnquiryId
-    );
-    return {
-      ...matchingData,
-      ...ele,
-    };
-  });
  
 
   return (
@@ -248,22 +239,7 @@ function Today() {
 
       <div className="row m-auto">
         <div className="col-md-12">
-          {/* Pagination */}
-          {/* <div className="pagination">
-            <span>Page </span>
-            <select
-              className="m-1"
-              value={currentPage}
-              onChange={(e) => handlePageChange(Number(e.target.value))}
-            >
-              {pageOptions.map((page) => (
-                <option value={page} key={page}>
-                  {page}
-                </option>
-              ))}
-            </select>
-            <span> of {totalPages}</span>
-          </div> */}
+        
           <table>
             <thead>
               <tr className="bg ">
@@ -352,14 +328,15 @@ function Today() {
                     onChange={(e) => setSearchReference(e.target.value)}
                   />{" "}
                 </th>
-                <th scope="col">
+                {/* <th scope="col " style={{width:"10%"}}>
                   <input
                     placeholder="Reference"
-                    className="vhs-table-input"
+                    className=""
                     value={searchReference2}
                     onChange={(e) => setSearchReference2(e.target.value)}
+                    
                   />{" "}
-                </th>
+                </th> */}
                 <th scope="col">
                   {" "}
                   <input
@@ -370,13 +347,43 @@ function Today() {
                   />
                 </th>
                 <th scope="col">
-                  <input placeholder="Excutive" className="vhs-table-input" />
+                <select
+                    className="vhs-table-input"
+                    value={searchStaff}
+                    onChange={(e) => setSearchStaff(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {[...new Set(filterdata?.map((i) => i.enquiryfollowData[0]?.staffname))].map(
+                      (uniqueexe) => (
+                        <option value={uniqueexe} key={uniqueexe}>
+                          {uniqueexe}
+                        </option>
+                      )
+                    )}
+                  </select>{" "}
+                  {/* <input placeholder="Excutive" value={searchStaff}  onChange={(e) => setSearchStaff(e.target.value)} className="vhs-table-input" /> */}
                 </th>
                 <th scope="col">
-                  <input placeholder="Responce" className="vhs-table-input" />
+                <select
+                    className="vhs-table-input"
+                    value={searchResponse}
+                    onChange={(e) => setSearchResponse(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {[...new Set(filterdata?.map((i) => i.enquiryfollowData[0]?.response))].map(
+                      (uniqueexe) => (
+                        <option value={uniqueexe} key={uniqueexe}>
+                          {uniqueexe}
+                        </option>
+                      )
+                    )}
+                  </select>{" "}
                 </th>
                 <th scope="col">
-                  <input placeholder="Desc" className="vhs-table-input" />
+                  <input placeholder="Desc" 
+                    className="vhs-table-input"
+                    value={searchDesc}
+                    onChange={(e) => setSearchDesc(e.target.value)}  />
                 </th>
               </tr>
               <tr className="bg">
@@ -391,7 +398,7 @@ function Today() {
                 <th className="bor">Address</th>
                 <th className="bor">City</th>
                 <th className="bor">Reference1</th>
-                <th className="bor">Reference2</th>
+                {/* <th className="bor">Reference2</th> */}
                 <th className="bor">Interested for</th>
                 <th className="bor">Executive Name</th>
                 <th className="bor">responce </th>
@@ -399,7 +406,7 @@ function Today() {
               </tr>
             </thead>
             <tbody>
-              {mergingArray.map((item, index) => (
+              {searchResults.map((item, index) => (
                 <a onClick={() => enquirydetail(item)} className="tbl">
                   <tr
                     key={item.id}
@@ -421,11 +428,11 @@ function Today() {
                     <td>{item.city}</td>
 
                     <td>{item.reference1}</td>
-                    <td>{item.reference2}</td>
+                    {/* <td style={{display:"flex",flexWrap:"wrap",width:"50px"}}>{item.reference2}</td> */}
                     <td>{item.intrestedfor}</td>
-                    <td>{item.staffname}</td>
-                    <td>{item.response}</td>
-                    <td>{item.desc}</td>
+                    <td>{item.enquiryfollowData[0]?.staffname}</td>
+                    <td>{item.enquiryfollowData[0]?.response}</td>
+                    <td>{item.enquiryfollowData[0]?.desc}</td>
 
                     {/* <td>{item.folldate}</td>
                     <td>{item.staffname}</td>

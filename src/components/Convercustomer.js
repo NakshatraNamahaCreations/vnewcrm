@@ -7,7 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 function Convertcustomer() {
   const navigate = useNavigate();
   const { id } = useParams();
-
+  const admin = JSON.parse(sessionStorage.getItem("admin"));
   const [citydata, setcitydata] = useState([]);
   const [customertypedata, setcustomertypedata] = useState([]);
   const [enquiryData, setenquiryData] = useState({});
@@ -47,7 +47,7 @@ function Convertcustomer() {
   const addcustomer = async (e) => {
     e.preventDefault();
 
-    if (!contactperson || !rbhf || !cnap || !lnf || !customertype) {
+    if (!contactperson || !rbhf || !cnap || !lnf || !customertype || !city ) {
       alert("fill all necessary fileds");
     } else {
       try {
@@ -294,9 +294,9 @@ function Convertcustomer() {
                         className="col-md-12 vhs-input-value"
                         onChange={(e) => setcity(e.target.value)}
                       >
-                        <option>{enquiryData?.city}</option>
-                        {citydata.map((item) => (
-                          <option value={item.city}>{item.city}</option>
+                        {/* <option>{enquiryData?.city}</option> */}
+                        {admin?.city.map((item) => (
+                          <option value={item.name}>{item.name}</option>
                         ))}
                       </select>
                     </div>

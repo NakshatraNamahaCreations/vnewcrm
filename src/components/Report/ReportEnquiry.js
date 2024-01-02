@@ -220,6 +220,19 @@ function Report_Enquiry() {
     setService(selectedService);
   };
 
+
+const handleClear =()=>{
+  setfromdate("");
+  setToDate("")
+  setCity("");
+  setExcuitive("");
+  setReference1("");
+  setService("");
+  setSeviceId("");
+  setSeviceName("");
+  setResponse("")
+}
+
   return (
     <div style={{ backgroundColor: "#f9f6f6" }} className="web">
       <div>
@@ -346,7 +359,7 @@ function Report_Enquiry() {
                     <div className="col-md-5 ms-4">
                       <select
                         className="report-select"
-                        onClick={(e) => setResponse(e.target.value)}
+                        onChange={(e) => setResponse(e.target.value)}
                       >
                         <option>All</option>
                         {responsedata.map((i) => (
@@ -425,14 +438,14 @@ function Report_Enquiry() {
                     Export
                   </button>
                   <button
-                    className="ps-3 pt-2 pb-2 pe-3"
+                    className="ps-3 pt-2 pb-2 pe-3 mx-3"
                     style={{
                       border: 0,
                       color: "white",
                       backgroundColor: "#a9042e",
                       borderRadius: "5px",
                     }}
-                    onClick={handleSearchClick}
+                    onClick={handleClear}
                   >
                     Clear
                   </button>

@@ -3,6 +3,7 @@ import Header from "../components/layout/Header";
 import axios from "axios";
 import Table from "react-bootstrap/Table";
 import { useParams, Link, NavLink } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 function Paymentfilterlist() {
   const [treatmentData, settreatmentData] = useState([]);
@@ -49,7 +50,7 @@ function Paymentfilterlist() {
       });
 
       if (res.status === 200) {
-     
+
         settreatmentData(res.data?.runningdata);
         setSearchResults(res.data?.runningdata);
       }
@@ -154,8 +155,8 @@ function Paymentfilterlist() {
       if (searchTechName) {
         results = results.filter(
           (item) =>
-            item.dsrdata?.TechorPMorVendorName &&
-            item.dsrdata?.TechorPMorVendorName.toLowerCase().includes(
+            item.dsrdata[0]?.TechorPMorVendorName &&
+            item.dsrdata[0]?.TechorPMorVendorName.toLowerCase().includes(
               searchTechName.toLowerCase()
             )
         );
@@ -244,10 +245,16 @@ function Paymentfilterlist() {
     searchResults.forEach((selectedData) => {
       // Calculate the grand total
       if (selectedData?.type === "userapp") {
-        grandTotal += Number(selectedData?.GrandTotal) || 0;
+        if (selectedData.dsrdata[0]?.jobComplete !== "CANCEL") {
+          grandTotal += Number(selectedData?.GrandTotal) || 0;
+        }
+
+
       } else {
-        if (selectedData.dividedamtCharges.length > 0) {
-          grandTotal += Number(selectedData.dividedamtCharges[0].charge) || 0;
+        if (selectedData.dsrdata[0]?.jobComplete !== "CANCEL") {
+          if (selectedData.dividedamtCharges.length > 0) {
+            grandTotal += Number(selectedData.dividedamtCharges[0].charge) || 0;
+          }
         }
       }
       // ... Calculate other totals for different columns similarly
@@ -326,6 +333,34 @@ function Paymentfilterlist() {
   const IMPSTotal = IMPSTotalInfo.total;
   const IMPSCount = IMPSTotalInfo.count;
 
+
+  console.log("searchResults",searchResults)
+
+
+  const exportData = () => {
+    const fileName = "Payment_Report.xlsx";
+  
+    // Assuming each object in searchResults has properties like 'category' and 'img'
+    const filteredData1 = searchResults?.map(item => ({
+      date: date,
+      category: item?.category,
+      customerName: item?.customerData?.[0]?.customerName,
+      city: item?.city,
+      number: item?.customerData?.[0]?.mainContact,
+      desc: item?.desc,
+      amount: item?.GrandTotal,
+      Technician: item?.dsrdata?.[0]?.TechorPMorVendorName,
+      paymentmode: item?.paymentData?.[0]?.paymentMode
+    }));
+  
+    const worksheet = XLSX.utils.json_to_sheet(filteredData1);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Category Data");
+    XLSX.writeFile(workbook, fileName);
+  };
+  
+
+
   return (
     <div className="web">
       <Header />
@@ -357,6 +392,25 @@ function Paymentfilterlist() {
             <span> of {totalPages}</span>
           </div>
         </div> */}
+
+        <button
+          className="ps-3 pt-2 pb-2 pe-3 ms-2"
+          style={{
+            border: 0,
+            color: "white",
+            backgroundColor: "#a9042e",
+            borderRadius: "5px",
+            width: "150px"
+          }}
+          onClick={exportData}
+        >
+          <i
+            class="fa-solid fa-download"
+            title="Download"
+          // style={{ color: "white", fontSize: "27px" }}
+          ></i>{" "}
+          Export
+        </button>
         <div className="col-md-12">
           <table style={{ width: "113%" }} class=" table-bordered mt-1">
             <thead className="">
@@ -468,7 +522,7 @@ function Paymentfilterlist() {
                     {[
                       ...new Set(
                         treatmentData?.map(
-                          (TECH) => TECH?.dsrdata?.TechorPMorVendorName
+                          (TECH) => TECH?.dsrdata[0]?.TechorPMorVendorName
                         )
                       ),
                     ].map((uniqueTECH) => (
@@ -551,8 +605,8 @@ function Paymentfilterlist() {
                       selectedData?.status === "confirm"
                         ? "orange"
                         : selectedData.dsrdata[0]?.jobComplete === "CANCEL"
-                        ? "rgb(186, 88, 88)"
-                        : "white",
+                          ? "rgb(186, 88, 88)"
+                          : "white",
                   }}
                 >
                   <td>{startSerialNumber + index}</td>
@@ -601,7 +655,7 @@ function Paymentfilterlist() {
                       )}
                     </td>
                   )}
-                  <td>{selectedData?.dsrdata?.TechorPMorVendorName}</td>
+                  <td>{selectedData?.dsrdata[0]?.TechorPMorVendorName}</td>
                   {selectedData?.paymentMode === "online" ? (
                     <td>
                       {" "}
@@ -669,7 +723,7 @@ function Paymentfilterlist() {
                           ) : (
                             ""
                           )}{" "}
-                          <div>{}</div>
+                          <div>{ }</div>
                         </div>
                       ))}
                     </td>
@@ -774,7 +828,7 @@ function Paymentfilterlist() {
                                 ) : (
                                   ""
                                 )}{" "}
-                                <div>{}</div>
+                                <div>{ }</div>
                               </div>
                             ))}
                           </>

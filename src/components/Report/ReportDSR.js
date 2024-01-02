@@ -76,12 +76,16 @@ function Report_DSR() {
 
   const getDsrDetails = async () => {
     try {
-      const res = await axios.get(apiURL + "/getrunningdata");
+      const res = await axios.post(apiURL + "/filterdsrdata", {
+        category:jobCatagory,
+        startDate: fromData,
+        endDate: toData,
+        city,
+      });
       if (res.status === 200) {
-        const data = res.data.runningdata;
-        console.log("DSR", data);
-        setDsrData(data);
-        setFilteredData(data);
+
+        setDsrData(res.data.data);
+        setFilteredData(res.data.data);
       }
     } catch (error) {
       console.error("Error fetching DSR details:", error);
@@ -96,6 +100,8 @@ function Report_DSR() {
     setFilteredData(dsrData);
     setSearchInput("");
     setShowMessage(true);
+    getDsrDetails()
+    
 
     const filteredResults = dsrData.filter((item) => {
       const itemClassification =

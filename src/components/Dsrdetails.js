@@ -10,7 +10,8 @@ import Spinner from "react-bootstrap/Spinner";
 
 function Dsrdetails() {
   const [show, setShow] = useState(false);
-
+  const [sms, setsms] = useState();
+  const [wtsms, setwtsms] = useState();
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -89,7 +90,7 @@ function Dsrdetails() {
   const [selectedTechName, setSelectedTechName] = useState(
     data.dsrdata.find((dsrItem) => dsrItem.serviceDate === data1)
       ? data.dsrdata.find((itemAmount) => itemAmount.serviceDate === data1)
-          .TechorPMorVendorName
+        .TechorPMorVendorName
       : ""
   );
 
@@ -156,13 +157,13 @@ function Dsrdetails() {
   useEffect(() => {
     getTechById();
   }, [selectedTechId]);
-  
+
   const getTechById = async () => {
     try {
       let res = await axios.get(
         `https://api.vijayhomeservicebengaluru.in/api/gettechnicianbyid/${selectedTechId}`
       );
-  
+
       if (res.status === 200 && res.data?.technician) {
         setTechDetailsk(res.data.technician);
       } else {
@@ -174,7 +175,7 @@ function Dsrdetails() {
       console.error("Error fetching technician details:", error);
     }
   };
-  
+
 
   const getnameof = async () => {
     let res = await axios.get(apiURL + "/getalltechnician");
@@ -194,6 +195,7 @@ function Dsrdetails() {
     }
   };
 
+
   const handleChange1 = (event) => {
     setjobComplete(event.target.value);
   };
@@ -201,7 +203,9 @@ function Dsrdetails() {
     // console.log("Radio button changed:", event.target.value);
     settype(event.target.value);
   };
-
+  const handleChange3 = (event) => {
+    setwtsms(event.target.value);
+  };
   const handleTechNameChange = (event) => {
     const selectedTech = techniciandata.find(
       (item) => item._id === event.target.value
@@ -236,114 +240,135 @@ function Dsrdetails() {
     // e.preventDefault();
     setSV(true);
     setLoading(true);
-    try {
-      const config = {
-        url: "/adddsrcall",
-        method: "post",
-        baseURL: apiURL,
-        // data: formdata,
-        headers: { "content-type": "application/json" },
-        data: {
-          serviceDate: data1,
-          serviceInfo: {
-            _id: data._id,
-            customerData: data.customerData,
-            dCategory: data.dCategory,
-            cardNo: data.cardNo,
-            contractType: data.contractType,
-            service: data.service,
-            planName: data.planName,
-            slots: data.slots,
-            serviceId: data.serviceId,
-            serviceCharge: data.serviceCharge,
-            serviceDate: data.serviceDate,
-            desc: data.desc,
-
-            category: data.category,
-            expiryDate: data.expiryDate,
-
-            dividedDates: data.dividedDates,
-            dividedCharges: data.dividedCharges,
-            dividedamtDates: data.dividedamtDates,
-            dividedamtCharges: data.dividedamtCharges,
-            oneCommunity: data.oneCommunity,
-            communityId: data.communityId,
-            BackofficeExecutive: data.BackofficeExecutive,
-            deliveryAddress: data.deliveryAddress,
-            type: data.type,
-            userId: data.userId,
-            selectedSlotText: data.selectedSlotText,
-            AddOns: data.AddOns,
-            TotalAmt: data.TotalAmt,
-            GrandTotal: data.GrandTotal,
-
-            city: data.city,
-          },
-          serviceId: data?._id,
-          cardNo: data.cardNo,
-          category: data.category,
-          bookingDate: moment().format("DD-MM-YYYY"),
-          priorityLevel: priorityLevel,
-          appoDate: data1,
-          appoTime: appoTime,
-          customerFeedback: customerFeedback,
-          techComment: techComment,
-          workerName: workerName,
-          workerAmount: workerAmount,
-          daytoComplete: daytoComplete,
-          backofficerno: admin.contactno,
-          techName: techName,
-          TechorPMorVendorID: selectedTechId,
-          TechorPMorVendorName: selectedTechName,
-          showinApp: Showinapp,
-          sendSms: sendSms,
-          jobType: jobType,
-          type: type,
-          jobComplete: jobComplete,
-          amount: data.serviceCharge,
-          cancelOfficerName: admin.displayname,
-          cancelOfferNumber: admin.contactno,
-          reason: Reason,
-          techName: techName,
-          cancelDate: moment().format("MMMM Do YYYY, h:mm:ss a"),
-        },
-      };
-      await axios(config).then(function (response) {
-        if (response.status === 200) {
-          setLoading(false);
-          setSV(false);
-
-          if (jobComplete === "CANCEL") {
-            const selectedResponse = scancelwhat[0];
-
-            whatsappscancel(
-              selectedResponse,
-              data.customerData[0]?.mainContact
-            );
-          } else {
-            const selectedResponse = assigntechwhat[0];
-
-            whatsapptectassign(
-              selectedResponse,
-              data.customerData[0]?.mainContact
-            );
-          }
-        }
-      });
-    } catch (error) {
-      console.error(error);
-      setLoading(false);
-      setSV(false);
-      alert(" Not Added");
+    if (!wtsms) {
+      setShow(false);
+      setLoading(false)
+      alert("Please select the whatsapp message sending option!   ")
     }
+    else {
+      try {
+        const config = {
+          url: "/adddsrcall",
+          method: "post",
+          baseURL: apiURL,
+          // data: formdata,
+          headers: { "content-type": "application/json" },
+          data: {
+            serviceDate: data1,
+            serviceInfo: {
+              _id: data._id,
+              customerData: data.customerData,
+              dCategory: data.dCategory,
+              cardNo: data.cardNo,
+              contractType: data.contractType,
+              service: data.service,
+              planName: data.planName,
+              slots: data.slots,
+              serviceId: data.serviceId,
+              serviceCharge: data.serviceCharge,
+              serviceDate: data.serviceDate,
+              desc: data.desc,
+  
+              category: data.category,
+              expiryDate: data.expiryDate,
+  
+              dividedDates: data.dividedDates,
+              dividedCharges: data.dividedCharges,
+              dividedamtDates: data.dividedamtDates,
+              dividedamtCharges: data.dividedamtCharges,
+              oneCommunity: data.oneCommunity,
+              communityId: data.communityId,
+              BackofficeExecutive: data.BackofficeExecutive,
+              deliveryAddress: data.deliveryAddress,
+              type: data.type,
+              userId: data.userId,
+              selectedSlotText: data.selectedSlotText,
+              AddOns: data.AddOns,
+              TotalAmt: data.TotalAmt,
+              GrandTotal: data.GrandTotal,
+  
+              city: data.city,
+            },
+            serviceId: data?._id,
+            cardNo: data.cardNo,
+            category: data.category,
+            bookingDate: moment().format("DD-MM-YYYY"),
+            priorityLevel: priorityLevel,
+            appoDate: data1,
+            appoTime: appoTime,
+            customerFeedback: customerFeedback,
+            techComment: techComment,
+            workerName: workerName,
+            workerAmount: workerAmount,
+            daytoComplete: daytoComplete,
+            backofficerno: admin.contactno,
+            techName: techName,
+            TechorPMorVendorID: selectedTechId,
+            TechorPMorVendorName: selectedTechName,
+            showinApp: Showinapp,
+            sendSms: sendSms,
+            jobType: jobType,
+            type: type,
+            jobComplete: jobComplete,
+            amount: data.serviceCharge,
+            cancelOfficerName: admin.displayname,
+            cancelOfferNumber: admin.contactno,
+            reason: Reason,
+            techName: techName,
+            cancelDate: moment().format("MMMM Do YYYY, h:mm:ss a"),
+          },
+        };
+        await axios(config).then(function (response) {
+          if (response.status === 200) {
+            setLoading(false);
+            setSV(false);
+  
+            if(wtsms === "YES"){
+              if (jobComplete === "CANCEL") {
+                const selectedResponse = scancelwhat[0];
+    
+                whatsappscancel(
+                  selectedResponse,
+                  data.customerData[0]?.mainContact
+                );
+              } else {
+                const selectedResponse = assigntechwhat[0];
+    
+                whatsapptectassign(
+                  selectedResponse,
+                  data.customerData[0]?.mainContact
+                );
+              }
+            }else{
+              window.location.assign(`/dsrcallist/${data1}/${data.category}`);
+              setShow(false);
+            }
+           
+          }
+        });
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+        setSV(false);
+        alert(" Not Added");
+      }
+    }
+   
+
+
+
   };
 
   // 16-9
   const Update = async (e) => {
     e.preventDefault();
-    if (jobComplete === "CANCEL") {
-      setShow(true);
-    } else {
+
+    if(!wtsms){
+      setShow(false);
+      setLoading(false)
+      alert("Please select the whatsapp message sending option!");
+    }
+    else{
       try {
         const config = {
           url: `/updatedsrdata/${dsrdata[0]?._id}`,
@@ -366,10 +391,10 @@ function Dsrdetails() {
               serviceCharge: data.serviceCharge,
               serviceDate: data.serviceDate,
               desc: data.desc,
-
+  
               category: data.category,
               expiryDate: data.expiryDate,
-
+  
               dividedDates: data.dividedDates,
               dividedCharges: data.dividedCharges,
               dividedamtDates: data.dividedamtDates,
@@ -384,7 +409,7 @@ function Dsrdetails() {
               AddOns: data.AddOns,
               TotalAmt: data.TotalAmt,
               GrandTotal: data.GrandTotal,
-
+  
               city: data.city,
             },
             jobCategory: jobCategory,
@@ -419,26 +444,34 @@ function Dsrdetails() {
         await axios(config).then(function (response) {
           if (response.status === 200) {
             setShow(false);
-            if (jobComplete === "YES") {
-              const selectedResponse = scompletewhat[0];
-              whatsappscomplete(
-                selectedResponse,
-                data.customerData[0]?.mainContact
-              );
-            } else if (jobComplete === "CANCEL") {
-              const selectedResponse = scancelwhat[0];
 
-              whatsappscancel(
-                selectedResponse,
-                data.customerData[0]?.mainContact
-              );
-            } else {
-              const selectedResponse = scancelwhat[0];
-              whatsapptectassign(
-                selectedResponse,
-                data.customerData[0]?.mainContact
-              );
+            if(wtsms === "YES"){
+              if (jobComplete === "YES") {
+                const selectedResponse = scompletewhat[0];
+                whatsappscomplete(
+                  selectedResponse,
+                  data.customerData[0]?.mainContact
+                );
+              } else {
+                const selectedResponse = assigntechwhat[0];
+                whatsapptectassign(
+                  selectedResponse,
+                  data.customerData[0]?.mainContact
+                );
+              }
+              if (jobComplete === "CANCEL") {
+                const selectedResponse = scancelwhat[0];
+    
+                whatsappscancel(
+                  selectedResponse,
+                  data.customerData[0]?.mainContact
+                );
+              }
+            }else{
+              setShow(false);
+              window.location.assign(`/dsrcallist/${data1}/${data.category}`);
             }
+          
           }
         });
       } catch (error) {
@@ -446,6 +479,8 @@ function Dsrdetails() {
         alert("Somthing went wrong");
       }
     }
+   
+
   };
 
   const getServiceManagement = async () => {
@@ -662,7 +697,7 @@ function Dsrdetails() {
       console.error("Error making API call:", error);
     }
   };
-
+  console.log("data1",data1)
   const whatsapptectassign = async (
     selectedResponse,
     contactNumber,
@@ -679,11 +714,12 @@ function Dsrdetails() {
       return;
     }
 
+    
     const invoiceLink = contentTemplate
       .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
       .replace(/\{Job_type\}/g, data?.desc)
       .replace(/\{Service_amount\}/g, data.GrandTotal)
-      .replace(/\{Call_date\}/g, data.serviceDate)
+      .replace(/\{Call_date\}/g, data1)
       .replace(/\{Slot_timing\}/g, data.selectedSlotText)
       .replace(/\{Staff_name\}/g, admin.displayname)
       .replace(/\{Staff_contact\}/g, admin.contactno)
@@ -747,7 +783,7 @@ function Dsrdetails() {
       .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
       .replace(/\{Service_name\}/g, data?.service)
       .replace(/\{Service_amount\}/g, data.GrandTotal)
-      .replace(/\{Invoice_link\}/g, data.serviceDate)
+      .replace(/\{Invoice_link\}/g, data?.dividedDates[0]?.date)
       .replace(/\{google_Form\}/g, googleform);
 
     // Replace <p> with line breaks and remove HTML tags
@@ -787,6 +823,7 @@ function Dsrdetails() {
     }
   };
 
+  // console.log("data?.serviceDate",data.dividedDates[0]?.date)
   const whatsappscancel = async (selectedResponse, contactNumber) => {
     const apiURL =
       "https://wa.chatmybot.in/gateway/waunofficial/v1/api/v2/message";
@@ -803,9 +840,9 @@ function Dsrdetails() {
       "https://docs.google.com/forms/d/e/1FAIpQLSdZjDyG7QsnwVnCnhkrFEHguWP5vNxTi03KZWgap0xXd5_geQ/viewform";
 
     const invoiceLink = contentTemplate
-      .replace(/\{Customer_name\}/g, data.customerData[0]?.customerName)
+      .replace(/\{Customer_name\}/g, data?.customerData[0]?.customerName)
       .replace(/\{Service_name\}/g, data?.service)
-      .replace(/\{Service_date\}/g, data.serviceDate)
+      .replace(/\{Service_date\}/g, data1)
 
       .replace(/\{google Form\}/g, googleform);
 
@@ -964,15 +1001,15 @@ function Dsrdetails() {
             selectedResponse,
             data.customerData[0]?.mainContact
           );
-       
+
         }
       } catch (error) {
         if (error.response) {
           alert(`Server error: ${error.response.data.message}`);
         } else if (error.request) {
           // The request was made but no response was received
-          console.log(error.request);
-          alert("No response from the server");
+          // console.log(error.request);
+          // alert("No response from the server");
         } else {
           // Something happened in setting up the request that triggered an error
           console.error("Error", error.message);
@@ -1140,8 +1177,8 @@ function Dsrdetails() {
               <div className="row pt-3">
                 <div className="col-md-4">
                   {dsrdata[0]?.jobComplete === "NO" ||
-                  dsrdata[0]?.jobComplete === undefined ||
-                  dsrdata[0]?.jobComplete === null ? (
+                    dsrdata[0]?.jobComplete === undefined ||
+                    dsrdata[0]?.jobComplete === null ? (
                     <>
                       <button onClick={() => setShow1(true)}>
                         Reschedule date
@@ -1241,7 +1278,7 @@ function Dsrdetails() {
                       style={{ height: "fit-content" }}
                     >
                       {data.deliveryAddress === null ||
-                      data.deliveryAddress === undefined ? (
+                        data.deliveryAddress === undefined ? (
                         <>
                           {data.customerData[0]?.cnap},
                           {data.customerData[0]?.rbhf},
@@ -1273,7 +1310,7 @@ function Dsrdetails() {
                   <div className="group pt-1">
                     <div className="vhs-non-editable">
                       {data.customerData[0]?.city === null ||
-                      data.customerData[0]?.city === undefined ? (
+                        data.customerData[0]?.city === undefined ? (
                         <>{data.customerData[0]?.city}</>
                       ) : (
                         <>{data.city}</>
@@ -1348,8 +1385,8 @@ function Dsrdetails() {
                             {" "}
                             {matchingData.length > 0
                               ? moment(matchingData[0]?.date).format(
-                                  "DD/MM/YYYY"
-                                )
+                                "DD/MM/YYYY"
+                              )
                               : ""}
                           </>
                         ) : (
@@ -1628,47 +1665,77 @@ function Dsrdetails() {
             </div>
           </div>
         </div>
-
-        <div className="col-6 d-flex">
-          <div className="col-4">
-            Job Complete
-            <span className="text-danger">*</span>
+        <div className="row">
+          <div className="col-6 d-flex">
+            <div className="col-4">
+              Job Complete
+              <span className="text-danger">*</span>
+            </div>
+            <div className="col-1">:</div>
+            <div className="group pt-1 col-7">
+              <label>
+                <input
+                  type="radio"
+                  value="YES"
+                  className="custom-radio mx-2"
+                  checked={jobComplete === "YES"}
+                  onChange={handleChange1}
+                />
+                YES
+              </label>
+              <label className="mx-3">
+                <input
+                  type="radio"
+                  value="NO"
+                  className="custom-radio mx-2"
+                  checked={jobComplete === "NO"}
+                  onChange={handleChange1}
+                />
+                NO
+              </label>
+              <label className="mx-3">
+                <input
+                  type="radio"
+                  value="CANCEL"
+                  className="custom-radio mx-2"
+                  checked={jobComplete === "CANCEL"}
+                  onChange={handleChange1}
+                />
+                CANCEL
+              </label>
+            </div>
           </div>
-          <div className="col-1">:</div>
-          <div className="group pt-1 col-7">
-            <label>
-              <input
-                type="radio"
-                value="YES"
-                className="custom-radio mx-2"
-                checked={jobComplete === "YES"}
-                onChange={handleChange1}
-              />
-              YES
-            </label>
-            <label className="mx-3">
-              <input
-                type="radio"
-                value="NO"
-                className="custom-radio mx-2"
-                checked={jobComplete === "NO"}
-                onChange={handleChange1}
-              />
-              NO
-            </label>
-            <label className="mx-3">
-              <input
-                type="radio"
-                value="CANCEL"
-                className="custom-radio mx-2"
-                checked={jobComplete === "CANCEL"}
-                onChange={handleChange1}
-              />
-              CANCEL
-            </label>
+          <div className="col-6 d-flex">
+            <div className="col-4">
+              whatsapp
+              <span className="text-danger">*</span>
+            </div>
+            <div className="col-1">:</div>
+            <div className="group pt-1 col-7">
+              <label>
+                <input
+                  type="radio"
+                  value="YES"
+                  className="custom-radio mx-2"
+                  checked={wtsms === "YES"}
+                  onChange={handleChange3}
+                />
+                YES
+              </label>
+              <label className="mx-3">
+                <input
+                  type="radio"
+                  value="NO"
+                  className="custom-radio mx-2"
+                  checked={wtsms === "NO"}
+                  onChange={handleChange3}
+                />
+                NO
+              </label>
+
+            </div>
           </div>
         </div>
-
         {dsrdata[0]?.jobComplete === "CANCEL" ? (
           <div>
             <h4 style={{ color: "red", textAlign: "center" }}>
@@ -1788,7 +1855,7 @@ function Dsrdetails() {
           </div>
         )}
 
-        {}
+        { }
         <Modal
           show={show}
           onHide={handleClose}

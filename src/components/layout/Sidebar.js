@@ -40,7 +40,7 @@ const Sidebar = ({ children }) => {
 
   if (admin && admin.enquiry === true) {
     menuItem.push({
-      path: "/enquiryadd",
+      path: "/new",
       name: "Enquiry",
     });
     // icon: <FaRegChartBar />,

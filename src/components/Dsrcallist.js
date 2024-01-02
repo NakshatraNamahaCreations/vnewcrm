@@ -3,13 +3,30 @@ import Header from "../components/layout/Header";
 import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import DSRnav from "./DSRnav";
+import moment from "moment";
 
 function Dsrcallist() {
   const apiURL = process.env.REACT_APP_API_URL;
   const admin = JSON.parse(sessionStorage.getItem("admin"));
 
   const { date, category } = useParams();
+  // console
+  const currentdate = new Date()
+  const formattedDate = moment(currentdate).format("YYYY-MM-DD")
+  console.log("currentdate", moment(currentdate).format("YYYY-MM-DD"));
 
+  const comparedate = formattedDate === date;
+
+
+  function name() {
+    if (formattedDate === date) {
+      return true
+    } else {
+      return false
+    }
+  }
+  const yokesh = name()
+  console.log("yokesh", yokesh);
   const [treatmentData, settreatmentData] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [dsrdata1, setdsrdata1] = useState([]);
@@ -288,6 +305,56 @@ function Dsrcallist() {
     setSearchResults(filteredData);
   };
 
+  const SERVICEdelay = (selectedData) => {
+    // Check if selectedData is defined
+    if (!yokesh == true) {
+
+      return;
+    }
+
+    const givenDate = moment(date, 'YYYY-MM-DD');
+
+    // Get the current date
+    const currentDate = moment();
+
+    const isPast = givenDate.isBefore(currentDate, 'day');
+
+
+    if (selectedData?.dsrdata[0]?.startJobTime) {
+      return
+    } else {
+      const selectedSlotText = selectedData?.selectedSlotText;
+
+      if (!selectedSlotText) {
+        // Handle the case where the time range is not available
+        console.log('Time range not found for the selected service.');
+        return false; // or handle it accordingly
+      }
+
+      // Get the current moment
+      const currentMoment = moment();
+
+      // Extract start and end times from the selected slot text
+      const [startTime, endTime] = selectedSlotText?.split(' - ');
+
+      // Parse the start time using moment
+      const slotStartTime = moment(startTime, 'hA');
+
+      // Compare current time with the selected time slot
+      const isPast = currentMoment.isAfter(slotStartTime);
+
+      // Return true if the selected slot is past the current time, otherwise false
+      return isPast;
+    }
+
+  };
+
+
+
+
+
+
+
   return (
     <div className="web">
       <Header />
@@ -544,19 +611,23 @@ function Dsrcallist() {
                   <tr
                     className="user-tbale-body"
                     key={index}
+                    // style={{ backgroundColor: SERVICEdelay(selectedData) ? 'darkgrey' : 'pink' }}
                     style={{
                       backgroundColor:
                         SERVICECOMPLETEDBYOP(selectedData) === "YES"
                           ? "rgb(182, 96, 255)"
                           : SERVICECOMPLETED(selectedData)
-                          ? "#4caf50"
-                          : SERVICECANCLE(selectedData) === "CANCEL"
-                          ? "#f44336"
-                          : SERVICESTARTED(selectedData)
-                          ? "#ffeb3b"
-                          : passfunction(selectedData)
-                          ? "#e2e3e5"
-                          : "",
+                            ? "#4caf50"
+                            : SERVICECANCLE(selectedData) === "CANCEL"
+                              ? "#f44336"
+
+                              : SERVICEdelay(selectedData)
+                                ? "#2196f3"
+                                : SERVICESTARTED(selectedData)
+                                  ? "#ffeb3b"
+                                  : passfunction(selectedData)
+                                    ? "darkgrey"
+                                    : "",
                     }}
                   >
                     <Link
@@ -570,10 +641,11 @@ function Dsrcallist() {
                     >
                       <td>{index + 1}</td>
                       {/* <td>{selectedData.category}</td> */}
-                      <td>{date}</td>
+                      <td>{date} {SERVICEdelay(selectedData)}</td>
+
                       <td>{selectedData?.selectedSlotText}</td>
 
-                      <td>{selectedData?.customerData[0]?.customerName}</td>
+                      <td>{selectedData?.customerdata[0]?.customerName}</td>
 
                       {/* {selectedData.city ? (
                       <td>{selectedData.city}</td>
@@ -590,7 +662,7 @@ function Dsrcallist() {
                           : ""}
                       </td>
 
-                      <td>{selectedData?.customerData[0]?.mainContact}</td>
+                      <td>{selectedData?.customerdata[0]?.mainContact}</td>
 
                       <td>
                         {/* {selectedData?.dsrdata &&
